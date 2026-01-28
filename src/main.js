@@ -60,7 +60,11 @@ const fishFiles = [
     { file: "jellyfish.glb", count: 1, scale: 0.0010},
     { file: "turtle.glb", count: 1, scale: 15 },
     { file: "crab.glb", count: 1, scale: 2 },
-    { file: "seahorse.glb", count: 1, scale: 0.35 }
+    { file: "seahorse.glb", count: 1, scale: 0.35 },
+    { file: "fish-nem.glb", count: 1, scale: 3.5 },
+    { file: "fishie.glb", count: 1, scale: 0.80 },
+    { file: "koi_fish.glb", count: 1, scale: 0.90 },
+    { file: "red_betta_fish.glb", count: 1, scale: 0.01 }
 ];
 
 const fishTemplates = {};
@@ -99,6 +103,37 @@ fishFiles.forEach((animal, index) => {
         }
     );
 });
+
+BABYLON.SceneLoader.ImportMesh(
+    "",
+    "./assets/models/ground/",
+    "lyme_bay.glb",
+    scene,
+    (meshes) => {
+        const groundTemplate = meshes.find(m => m.getTotalVertices() > 0);
+        if (!groundTemplate) return;
+
+        const ground = groundTemplate.clone("aquariumGround");
+        ground.setEnabled(true);
+
+        ground.scaling.scaleInPlace(0.1);
+
+        // Bounding box du mesh après scaling
+        const bbox = ground.getBoundingInfo().boundingBox;
+        const height = bbox.maximum.y - bbox.minimum.y;
+
+        // Calcul du bas de l'aquarium
+        const aquariumBottomY = aquarium.position.y - (aquarium.scaling.y * 0.5);
+
+        // Positionner le sol au bas de l'aquarium
+        ground.position = new BABYLON.Vector3(
+            aquarium.position.x,  // Centré X
+            aquariumBottomY + height * 0.1,
+            aquarium.position.z
+        );
+    }
+);
+
 
 engine.runRenderLoop(() => scene.render());
 window.addEventListener("resize", () => engine.resize());
