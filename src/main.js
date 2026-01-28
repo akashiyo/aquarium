@@ -1,4 +1,5 @@
 import { createHotspot } from "./point.js";
+import { animalInfo } from "./animalInfo.js";
 
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
