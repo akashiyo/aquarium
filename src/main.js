@@ -1,3 +1,5 @@
+import { createHotspot } from "./point.js";
+
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
 const scene = new BABYLON.Scene(engine);
@@ -63,19 +65,37 @@ const fishFiles = [
 
 const fishTemplates = {};
 
-fishFiles.forEach(fish => {
+fishFiles.forEach((animal, index) => {
+    const hotspotNumber = index + 1; // correspondra au div #hotspot-1, #hotspot-2, etc.
+
     BABYLON.SceneLoader.ImportMesh(
         "",
         "./assets/models/",
-        fish.file,
+        animal.file,
         scene,
         (meshes) => {
             const template = meshes[0];
-            template.setEnabled(false);
+            template.setEnabled(false); // template pour cloner
 
-            fishTemplates[fish.file] = template;
+            // Clone unique (ou plusieurs si tu veux count>1)
+            const clone = template.clone(`${template.name}_0`);
+            clone.setEnabled(true);
+            clone.scaling.scaleInPlace(animal.scale);
 
-            createFishesFromTemplate(template, fish.count, fish.scale);
+            clone.position = new BABYLON.Vector3(
+                BABYLON.Scalar.RandomRange(-20, 20),
+                BABYLON.Scalar.RandomRange(-12, 12),
+                BABYLON.Scalar.RandomRange(-20, 20)
+            );
+            clone.rotation.y = Math.random() * Math.PI * 2;
+
+            clone.metadata = {
+                speed: BABYLON.Scalar.RandomRange(0.005, 0.02),
+                turn: Math.random() > 0.5 ? 1 : -1
+            };
+
+            // 🔵 Crée le hotspot pour ce clone
+            createHotspot(scene, camera, engine, clone, hotspotNumber, animal.title, animal.text);
         }
     );
 });

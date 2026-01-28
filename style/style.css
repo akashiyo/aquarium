@@ -1,0 +1,31 @@
+#infoBox {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    width: 300px;
+    padding: 16px;
+    background: rgba(0,0,0,0.75);
+    color: white;
+    border-radius: 10px;
+    font-family: sans-serif;
+    z-index: 10;
+}
+
+.hidden {
+    display: none;
+}
+
+.hotspot {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: white;
+    color: black;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+}
