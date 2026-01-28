@@ -1,15 +1,10 @@
 export function createHotspot(scene, camera, engine, targetMesh, number, title, text) {
-    if (!targetMesh) return;
-
-    // 🔵 Ancre 3D invisible sur le mesh
     const hotspotAnchor = new BABYLON.TransformNode("hotspotAnchor", scene);
     hotspotAnchor.position = targetMesh.getBoundingInfo().boundingBox.centerWorld;
 
-    // 🔵 Élément HTML correspondant
     const hotspotEl = document.getElementById(`hotspot-${number}`);
-    hotspotEl.innerText = number;
+    if (!hotspotEl) return;
 
-    // Positionner le hotspot chaque frame
     scene.onBeforeRenderObservable.add(() => {
         const pos = BABYLON.Vector3.Project(
             hotspotAnchor.getAbsolutePosition(),
@@ -17,19 +12,21 @@ export function createHotspot(scene, camera, engine, targetMesh, number, title, 
             scene.getTransformMatrix(),
             camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight())
         );
+
         hotspotEl.style.left = pos.x + "px";
         hotspotEl.style.top = pos.y + "px";
         hotspotEl.style.display = pos.z < 0 ? "none" : "flex";
     });
 
-    // Au clic : zoom + infos
     hotspotEl.addEventListener("click", () => {
         focusCameraOnHotspot(camera, scene, document.getElementById("renderCanvas"), hotspotAnchor);
+
         document.getElementById("infoTitle").innerText = `${number}. ${title}`;
         document.getElementById("infoText").innerText = text;
         document.getElementById("infoBox").classList.remove("hidden");
     });
 }
+
 
 // 🔑 Une seule fonction qui gère tout
 function focusCameraOnHotspot(camera, scene, canvas, target) {
