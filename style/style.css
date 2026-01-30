@@ -1,3 +1,10 @@
+body {
+    margin: 0; !important;
+    overflow: scroll;
+}
+#renderCanvas {
+    overflow: scroll;
+}
 #infoBox {
     position: absolute;
     bottom: 40px;

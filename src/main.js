@@ -58,7 +58,7 @@ function createFishesFromTemplate(template, count, scale) {
 // Fishs
 const fishFiles = [
     { file: "fish.glb", count: 1, scale: 0.01 },
-    { file: "jellyfish.glb", count: 1, scale: 0.0010},
+    { file: "jellyfish.glb", count: 4, scale: 0.0010},
     { file: "turtle.glb", count: 1, scale: 15 },
     { file: "crab.glb", count: 1, scale: 2 },
     { file: "seahorse.glb", count: 1, scale: 0.35 },
@@ -117,42 +117,33 @@ fishFiles.forEach((animal) => {
     );
 });
 
+// Sol avec texture de sable (box pour avoir de l'épaisseur haha)
+const ground = BABYLON.MeshBuilder.CreateBox(
+    "ground",
+    { width: 50, height: 3, depth: 50 },
+    scene
+);
+
+const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
+groundMat.diffuseTexture = new BABYLON.Texture("https://playground.babylonjs.com/textures/sand.jpg", scene);
+groundMat.diffuseTexture.uScale = 5;
+groundMat.diffuseTexture.vScale = 5;
+ground.material = groundMat;
+
+// Positionner au bas de l'aquarium (le haut du box à Y = -25)
+ground.position.y = -25 - 1.5;
+
+// Décor rocheux (lyme_bay) dans le coin droit
 BABYLON.SceneLoader.ImportMesh(
     "",
     "./assets/models/ground/",
     "lyme_bay.glb",
     scene,
     (meshes) => {
-        const groundTemplate = meshes.find(m => m.getTotalVertices() > 0);
-        if (!groundTemplate) return;
-
-        // Désactiver le template original
-        groundTemplate.setEnabled(false);
-
-        const ground = groundTemplate.clone("aquariumGround");
-        ground.setEnabled(true);
-
-        // ground.scaling.scaleInPlace(0.1);
-
-        // Hauteur de l'aquarium (définie dans CreateBox)
-        const aquariumHeight = 50;
-
-        // Calcul du bas de l'aquarium (centré à l'origine, donc bas = -hauteur/2)
-        const aquariumBottomY = aquarium.position.y - (aquariumHeight / 2);
-
-        // Bounding box du mesh pour ajuster la position verticale
-        const bbox = ground.getBoundingInfo().boundingBox;
-        const groundMinY = bbox.minimum.y;
-
-        // Positionner le sol au bas de l'aquarium
-        ground.position = new BABYLON.Vector3(
-            aquarium.position.x,
-            aquariumBottomY - groundMinY,  // Aligne le bas du mesh avec le bas de l'aquarium
-            aquarium.position.z
-        );
+        meshes[0].scaling = new BABYLON.Vector3(0.8, 0.8, 0.8);
+        meshes[0].position.y = -24.5;
     }
 );
-
 
 engine.runRenderLoop(() => scene.render());
 window.addEventListener("resize", () => engine.resize());
