@@ -22,7 +22,7 @@ export function createHotspot(scene, camera, engine, targetMesh, number, title, 
         focusCameraOnHotspot(camera, scene, document.getElementById("renderCanvas"), hotspotAnchor);
 
         document.getElementById("infoTitle").innerText = `${number}. ${title}`;
-        document.getElementById("infoText").innerText = text;
+        document.getElementById("infoText").innerHTML = text;
         document.getElementById("infoBox").classList.remove("hidden");
     });
 }

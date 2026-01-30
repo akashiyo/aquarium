@@ -1,5 +1,5 @@
 body {
-    margin: 0; !important;
+    margin: 0 !important;
     overflow: scroll;
 }
 #renderCanvas {
@@ -11,7 +11,7 @@ body {
     left: 40px;
     width: 300px;
     padding: 16px;
-    background: rgba(0,0,0,0.75);
+    background: rgba(172, 188, 218, 0.63);
     color: white;
     border-radius: 10px;
     font-family: sans-serif;
@@ -35,4 +35,8 @@ body {
     justify-content: center;
     cursor: pointer;
     transform: translate(-50%, -50%);
+}
+
+br{
+    margin: 9px;
 }
