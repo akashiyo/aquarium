@@ -1,8 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Chicle&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Chicle&family=Dongle&family=Kosugi+Maru&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 body {
     margin: 0 !important;
     overflow: scroll;
+    background-color: rgb(252, 252, 252);
 }
 #renderCanvas {
     overflow: scroll;
@@ -58,7 +60,15 @@ h1{
 }
 
 
-img{
-    width: 3%;
-    margin-top: -2.3%;
+img {
+    width: 5%;
+    margin-top: -6%;
+}
+
+p{
+    font-family: "Dongle", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 40px;
+    margin-left: 5%;
 }
