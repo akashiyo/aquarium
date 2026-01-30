@@ -71,4 +71,29 @@ export const animalInfo = {
             "<br> <strong> Localisation : </strong>" +
             "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
     },
+
+    "animal_crossing_new_horizons_octopus.glb": {
+        number: 10,
+        title: " ",
+        text:  " <strong> Description : </strong>" +
+            "<br> <strong> Localisation : </strong>" +
+            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
+    },
+
+    "animal_crossing_new_horizons_koi.glb": {
+        number: 11,
+        title: " ",
+        text:  " <strong> Description : </strong>" +
+            "<br> <strong> Localisation : </strong>" +
+            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
+    },
+
+    "pelagic_thresher_shark.glb": {
+        number: 12,
+        title:  " ",
+        text:  " <strong> Description : </strong>" +
+            "<br> <strong> Localisation : </strong>" +
+            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
+    },
+
 };

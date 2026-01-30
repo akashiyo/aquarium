@@ -37,15 +37,23 @@ aquarium.material = glassMat;
 
 // Fishs
 const fishFiles = [
-    { file: "fish.glb", count: 3, scale: 0.01 },
-    { file: "jellyfish.glb", count: 4, scale: [0.0010, 0.0013, 0.0092] },
-    { file: "turtle.glb", count: 1, scale: 15 },
-    { file: "crab.glb", count: 10, scale: [2,3], y: -23 },
-    { file: "seahorse.glb", count: 10, scale: 0.35 },
-    { file: "fish-nem.glb", count: 1, scale: 3.5 },
-    { file: "fishie.glb", count: 6, scale: 0.80 },
-    { file: "koi_fish.glb", count: 5, scale: 0.90 },
-    { file: "red_betta_fish.glb", count: 7, scale: 0.01 }
+    { file: "fish.glb", count: 3, scale: 0.01, x: 1, y: 2, z: 5},
+    { file: "jellyfish.glb", count: 4, scale: [0.0010, 0.0015, 0.0020], x: 3, y: 6, z: 12 },
+    { file: "turtle.glb", count: 1, scale: 15, x: 10, y: 11, z: 11 },
+    { file: "crab.glb", count: 10, scale: [2,3], y: -23, x: 15, z: 9 },
+    { file: "seahorse.glb", count: 10, scale: 0.35, x: 10, y: 16, z: 8 },
+    { file: "fish-nem.glb", count: 10, scale: 3.5, x: 13, y: 13, z: 13 },
+    { file: "fishie.glb", count: 6, scale: 0.80, x: 12, y: 12, z: 12 },
+    { file: "koi_fish.glb", count: 5, scale: 0.90, x: 5, y: 5, z: 5 },
+    { file: "red_betta_fish.glb", count: 7, scale: 0.01, x: 8, y: 8, z: 8 },
+
+    { file: "animal_crossing_new_horizons_koi.glb", count: 2, scale: 0.01, x: 22, y: 2, z: 17 },
+    { file: "animal_crossing_new_horizons_octopus.glb", count: 1, scale: 1, y: -24 },
+    { file: "fishoo.glb", count: 2, scale: 1, x: 10, y: 16, z: 13 },
+    { file: "lowpoly_fish.glb", count: 2, scale: 1, x: -10, y: -10, z: 5},
+    { file: "octopus.glb", count: 1, scale: 1,x: -1, y: -2, z: -5 },
+    { file: "pelagic_thresher_shark.glb", count: 1, scale: 0.05, y: 15, x: -9, z: -12 },
+    { file: "stylized_crab.glb", count: 2, scale: 1, x: 1, y: 2, z: 5 }
 ];
 
 fishFiles.forEach((animal) => {
@@ -64,9 +72,9 @@ fishFiles.forEach((animal) => {
             template.setEnabled(false);
 
             // Position de base du groupe (utilise les valeurs définies ou aléatoire)
-            const groupBaseX = animal.x !== undefined ? animal.x : BABYLON.Scalar.RandomRange(-15, 15);
-            const groupBaseY = animal.y !== undefined ? animal.y : BABYLON.Scalar.RandomRange(-10, 10);
-            const groupBaseZ = animal.z !== undefined ? animal.z : BABYLON.Scalar.RandomRange(-15, 15);
+            const groupBaseX = animal.x; // !== undefined ? animal.x : BABYLON.Scalar.RandomRange(-15, 15);
+            const groupBaseY = animal.y; // !== undefined ? animal.y : BABYLON.Scalar.RandomRange(-10, 10);
+            const groupBaseZ = animal.z; //!== undefined ? animal.z : BABYLON.Scalar.RandomRange(-20, 15);
 
             // Espacement entre les clones du groupe
             const spacing = 3;
@@ -130,7 +138,10 @@ ground.material = groundMat;
 ground.position.y = -25 - 1.5;
 // Algues dans les 4 coins du sol
 const algaeFiles = [
-    { file: "alga.glb", corner: { x: -20, z: -20 }, scale: 2, y: -25, count: 20, spacing: 3 },
+    { file: "alga.glb", corner: { x: -20, z: -20 }, scale: 2, y: -25, count: 30, spacing:   3 },
+    { file: "alga.glb", corner: { x: 20, z: -20 }, scale: 2, y: -25, count: 30, spacing: 3 },
+    { file: "alga.glb", corner: { x: -10, z: 10 }, scale: 2, y: -25, count: 10, spacing: 3 },
+    { file: "alga.glb", corner: { x: 10, z: -10 }, scale: 2, y: -25, count: 10, spacing: 3 },
     { file: "algue_rouge_actuelle.glb", corner: { x: 20, z: 20 }, scale: 2, y: -25, count: 1, spacing: 3 }
 ];
 
