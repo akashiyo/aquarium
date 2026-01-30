@@ -17,7 +17,7 @@ camera.attachControl(canvas, true);
 // Light
 new BABYLON.HemisphericLight(
     "light",
-    new BABYLON.Vector3(0, 1, 0),
+    new BABYLON.Vector3(5, 1, 0),
     scene
 );
 
@@ -33,51 +33,27 @@ glassMat.alpha = 0.3;
 glassMat.diffuseColor = new BABYLON.Color3(0.2, 0.6, 0.8);
 aquarium.material = glassMat;
 
-function createFishesFromTemplate(template, count, scale) {
-    for (let i = 0; i < count; i++) {
-        const fish = template.clone(`${template.name}_${i}`);
-        fish.setEnabled(true);
-
-        fish.scaling.scaleInPlace(scale);
-
-        fish.position = new BABYLON.Vector3(
-            BABYLON.Scalar.RandomRange(-20, 20),
-            BABYLON.Scalar.RandomRange(-12, 12),
-            BABYLON.Scalar.RandomRange(-20, 20)
-        );
-
-        fish.rotation.y = Math.random() * Math.PI * 2;
-
-        fish.metadata = {
-            speed: BABYLON.Scalar.RandomRange(0.005, 0.02),
-            turn: Math.random() > 0.5 ? 1 : -1
-        };
-    }
-}
-
 // Fishs
 const fishFiles = [
-    { file: "fish.glb", count: 1, scale: 0.01 },
+    { file: "fish.glb", count: 3, scale: 0.01 },
     { file: "jellyfish.glb", count: 4, scale: 0.0010},
     { file: "turtle.glb", count: 1, scale: 15 },
-    { file: "crab.glb", count: 1, scale: 2 },
-    { file: "seahorse.glb", count: 1, scale: 0.35 },
+    { file: "crab.glb", count: 2, scale: 2 },
+    { file: "seahorse.glb", count: 10, scale: 0.35 },
     { file: "fish-nem.glb", count: 1, scale: 3.5 },
-    { file: "fishie.glb", count: 1, scale: 0.80 },
-    { file: "koi_fish.glb", count: 1, scale: 0.90 },
-    { file: "red_betta_fish.glb", count: 1, scale: 0.01 }
+    { file: "fishie.glb", count: 6, scale: 0.80 },
+    { file: "koi_fish.glb", count: 5, scale: 0.90 },
+    { file: "red_betta_fish.glb", count: 7, scale: 0.01 }
 ];
-
-const fishTemplates = {};
 
 fishFiles.forEach((animal) => {
 
     const info = animalInfo[animal.file];
-    if (!info) return; // sécurité si pas d'info définie
+    if (!info) return;
 
     BABYLON.SceneLoader.ImportMesh(
         "",
-        "./assets/models/",
+        "./assets/models/animals/",
         animal.file,
         scene,
         (meshes) => {
@@ -85,34 +61,48 @@ fishFiles.forEach((animal) => {
             const template = meshes[0];
             template.setEnabled(false);
 
-            const clone = template.clone(`${animal.file}_clone`);
-            clone.setEnabled(true);
+            // Position de base du groupe (aléatoire)
+            const groupBaseX = BABYLON.Scalar.RandomRange(-15, 15);
+            const groupBaseY = BABYLON.Scalar.RandomRange(-10, 10);
+            const groupBaseZ = BABYLON.Scalar.RandomRange(-15, 15);
 
-            clone.scaling.scaleInPlace(animal.scale);
+            // Espacement entre les clones du groupe
+            const spacing = 3;
 
-            clone.position = new BABYLON.Vector3(
-                BABYLON.Scalar.RandomRange(-20, 20),
-                BABYLON.Scalar.RandomRange(-12, 12),
-                BABYLON.Scalar.RandomRange(-20, 20)
-            );
+            // Créer autant de clones que demandé par count
+            for (let i = 0; i < animal.count; i++) {
+                const clone = template.clone(`${animal.file}_clone_${i}`);
+                clone.setEnabled(true);
 
-            clone.rotation.y = Math.random() * Math.PI * 2;
+                clone.scaling.scaleInPlace(animal.scale);
 
-            clone.metadata = {
-                speed: BABYLON.Scalar.RandomRange(0.005, 0.02),
-                turn: Math.random() > 0.5 ? 1 : -1
-            };
+                // Position avec décalage autour du centre du groupe
+                clone.position = new BABYLON.Vector3(
+                    groupBaseX + (i % 2) * spacing - spacing / 2 + BABYLON.Scalar.RandomRange(-1, 1),
+                    groupBaseY + BABYLON.Scalar.RandomRange(-2, 2),
+                    groupBaseZ + Math.floor(i / 2) * spacing - spacing / 2 + BABYLON.Scalar.RandomRange(-1, 1)
+                );
 
-            // Lie les infos contenu dans animalInfo.js
-            createHotspot(
-                scene,
-                camera,
-                engine,
-                clone,
-                info.number,
-                info.title,
-                info.text
-            );
+                clone.rotation.y = Math.random() * Math.PI * 2;
+
+                clone.metadata = {
+                    speed: BABYLON.Scalar.RandomRange(0.005, 0.02),
+                    turn: Math.random() > 0.5 ? 1 : -1
+                };
+
+                // Hotspot seulement pour le premier clone
+                if (i === 0) {
+                    createHotspot(
+                        scene,
+                        camera,
+                        engine,
+                        clone,
+                        info.number,
+                        info.title,
+                        info.text
+                    );
+                }
+            }
         }
     );
 });
@@ -132,8 +122,47 @@ ground.material = groundMat;
 
 // Positionner au bas de l'aquarium (le haut du box à Y = -25)
 ground.position.y = -25 - 1.5;
+// Algues dans les 4 coins du sol
+const algaeFiles = [
+    { file: "alga.glb", corner: { x: -20, z: -20 }, scale: 2, y: -25, count: 20, spacing: 3 },
+    { file: "algue_rouge_actuelle.glb", corner: { x: 20, z: 20 }, scale: 2, y: -25, count: 1, spacing: 3 }
+];
 
-// Décor rocheux (lyme_bay) dans le coin droit
+algaeFiles.forEach((algae) => {
+    BABYLON.SceneLoader.ImportMesh(
+        "",
+        "./assets/models/ground/",
+        algae.file,
+        scene,
+        (meshes) => {
+            const template = meshes[0];
+            template.setEnabled(false);
+
+            const count = algae.count || 1;
+            const spacing = algae.spacing || 3;
+
+            for (let i = 0; i < count; i++) {
+                const clone = template.clone(`${algae.file}_clone_${i}`);
+                clone.setEnabled(true);
+
+                clone.scaling = new BABYLON.Vector3(algae.scale, algae.scale, algae.scale);
+
+                // Position en grille autour du coin
+                const offsetX = (i % 2) * spacing - spacing / 2;
+                const offsetZ = Math.floor(i / 2) * spacing - spacing / 2;
+
+                clone.position = new BABYLON.Vector3(
+                    algae.corner.x + offsetX,
+                    algae.y,
+                    algae.corner.z + offsetZ
+                );
+
+                clone.rotation.y = Math.random() * Math.PI * 2;
+            }
+        }
+    );
+});
+// Décor rocheux dans le coin droit
 BABYLON.SceneLoader.ImportMesh(
     "",
     "./assets/models/ground/",
