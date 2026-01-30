@@ -1,31 +1,55 @@
 export function createHotspot(scene, camera, engine, targetMesh, number, title, text) {
+
     const hotspotAnchor = new BABYLON.TransformNode("hotspotAnchor", scene);
     hotspotAnchor.position = targetMesh.getBoundingInfo().boundingBox.centerWorld;
 
     const hotspotEl = document.getElementById(`hotspot-${number}`);
     if (!hotspotEl) return;
 
+    const MAX_DISTANCE = 20;
+
     scene.onBeforeRenderObservable.add(() => {
+
+        const distance = BABYLON.Vector3.Distance(
+            camera.position,
+            hotspotAnchor.getAbsolutePosition()
+        );
+
+        if (distance > MAX_DISTANCE) {
+            hotspotEl.style.display = "none";
+            return;
+        }
+
         const pos = BABYLON.Vector3.Project(
             hotspotAnchor.getAbsolutePosition(),
             BABYLON.Matrix.Identity(),
             scene.getTransformMatrix(),
-            camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight())
+            camera.viewport.toGlobal(
+                engine.getRenderWidth(),
+                engine.getRenderHeight()
+            )
         );
 
         hotspotEl.style.left = pos.x + "px";
         hotspotEl.style.top = pos.y + "px";
+
         hotspotEl.style.display = pos.z < 0 ? "none" : "flex";
     });
 
     hotspotEl.addEventListener("click", () => {
-        focusCameraOnHotspot(camera, scene, document.getElementById("renderCanvas"), hotspotAnchor);
+        focusCameraOnHotspot(
+            camera,
+            scene,
+            document.getElementById("renderCanvas"),
+            hotspotAnchor
+        );
 
         document.getElementById("infoTitle").innerText = `${number}. ${title}`;
-        document.getElementById("infoText").innerHTML = text;
+        document.getElementById("infoText").innerHTML = text; // ← HTML autorisé
         document.getElementById("infoBox").classList.remove("hidden");
     });
 }
+
 
 
 function focusCameraOnHotspot(camera, scene, canvas, target) {
