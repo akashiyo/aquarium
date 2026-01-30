@@ -28,7 +28,6 @@ export function createHotspot(scene, camera, engine, targetMesh, number, title, 
 }
 
 
-// 🔑 Une seule fonction qui gère tout
 function focusCameraOnHotspot(camera, scene, canvas, target) {
     const targetPos = target.getAbsolutePosition().clone(); // <-- toujours un Vector3
 
