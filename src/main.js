@@ -126,22 +126,28 @@ BABYLON.SceneLoader.ImportMesh(
         const groundTemplate = meshes.find(m => m.getTotalVertices() > 0);
         if (!groundTemplate) return;
 
+        // Désactiver le template original
+        groundTemplate.setEnabled(false);
+
         const ground = groundTemplate.clone("aquariumGround");
         ground.setEnabled(true);
 
-        ground.scaling.scaleInPlace(0.1);
+        // ground.scaling.scaleInPlace(0.1);
 
-        // Bounding box du mesh après scaling
+        // Hauteur de l'aquarium (définie dans CreateBox)
+        const aquariumHeight = 50;
+
+        // Calcul du bas de l'aquarium (centré à l'origine, donc bas = -hauteur/2)
+        const aquariumBottomY = aquarium.position.y - (aquariumHeight / 2);
+
+        // Bounding box du mesh pour ajuster la position verticale
         const bbox = ground.getBoundingInfo().boundingBox;
-        const height = bbox.maximum.y - bbox.minimum.y;
-
-        // Calcul du bas de l'aquarium
-        const aquariumBottomY = aquarium.position.y - (aquarium.scaling.y * 0.5);
+        const groundMinY = bbox.minimum.y;
 
         // Positionner le sol au bas de l'aquarium
         ground.position = new BABYLON.Vector3(
-            aquarium.position.x,  // Centré X
-            aquariumBottomY + height * 0.1,
+            aquarium.position.x,
+            aquariumBottomY - groundMinY,  // Aligne le bas du mesh avec le bas de l'aquarium
             aquarium.position.z
         );
     }
