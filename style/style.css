@@ -1,9 +1,9 @@
 body {
     margin: 0 !important;
-    overflow: scroll;
+    overflow: clip;
 }
 #renderCanvas {
-    overflow: scroll;
+    overflow: clip;
 }
 #infoBox {
     position: absolute;

@@ -36,9 +36,9 @@ aquarium.material = glassMat;
 // Fishs
 const fishFiles = [
     { file: "fish.glb", count: 3, scale: 0.01 },
-    { file: "jellyfish.glb", count: 4, scale: 0.0010},
+    { file: "jellyfish.glb", count: 4, scale: [0.0010, 0.0013, 0.0092] },
     { file: "turtle.glb", count: 1, scale: 15 },
-    { file: "crab.glb", count: 2, scale: 2 },
+    { file: "crab.glb", count: 10, scale: [2,3], y: -23 },
     { file: "seahorse.glb", count: 10, scale: 0.35 },
     { file: "fish-nem.glb", count: 1, scale: 3.5 },
     { file: "fishie.glb", count: 6, scale: 0.80 },
@@ -61,10 +61,10 @@ fishFiles.forEach((animal) => {
             const template = meshes[0];
             template.setEnabled(false);
 
-            // Position de base du groupe (aléatoire)
-            const groupBaseX = BABYLON.Scalar.RandomRange(-15, 15);
-            const groupBaseY = BABYLON.Scalar.RandomRange(-10, 10);
-            const groupBaseZ = BABYLON.Scalar.RandomRange(-15, 15);
+            // Position de base du groupe (utilise les valeurs définies ou aléatoire)
+            const groupBaseX = animal.x !== undefined ? animal.x : BABYLON.Scalar.RandomRange(-15, 15);
+            const groupBaseY = animal.y !== undefined ? animal.y : BABYLON.Scalar.RandomRange(-10, 10);
+            const groupBaseZ = animal.z !== undefined ? animal.z : BABYLON.Scalar.RandomRange(-15, 15);
 
             // Espacement entre les clones du groupe
             const spacing = 3;
@@ -74,7 +74,11 @@ fishFiles.forEach((animal) => {
                 const clone = template.clone(`${animal.file}_clone_${i}`);
                 clone.setEnabled(true);
 
-                clone.scaling.scaleInPlace(animal.scale);
+                // Scale : si tableau, prend une valeur aléatoire parmi les options
+                const scaleValue = Array.isArray(animal.scale) 
+                    ? animal.scale[Math.floor(Math.random() * animal.scale.length)]
+                    : animal.scale;
+                clone.scaling.scaleInPlace(scaleValue);
 
                 // Position avec décalage autour du centre du groupe
                 clone.position = new BABYLON.Vector3(
@@ -162,7 +166,8 @@ algaeFiles.forEach((algae) => {
         }
     );
 });
-// Décor rocheux dans le coin droit
+
+// roche 
 BABYLON.SceneLoader.ImportMesh(
     "",
     "./assets/models/ground/",
