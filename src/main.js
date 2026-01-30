@@ -5,6 +5,8 @@ const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
 const scene = new BABYLON.Scene(engine);
 
+scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
+
 // Camera
 const camera = new BABYLON.ArcRotateCamera(
     "camera",
