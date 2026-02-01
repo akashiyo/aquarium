@@ -1,68 +1,99 @@
-export function createHotspot(scene, camera, engine, targetMesh, number, title, text) {
+export function createHotspot(scene, camera, advancedTexture, targetMesh, number, title, text) {
+    // Créer un point d'ancrage indépendant pour le hotspot
+    const anchor = new BABYLON.TransformNode(`hotspot-anchor-${number}`, scene);
 
-    const hotspotAnchor = new BABYLON.TransformNode("hotspotAnchor", scene);
-    hotspotAnchor.position = targetMesh.getBoundingInfo().boundingBox.centerWorld;
+    // Fonction pour calculer le centre de tous les meshes enfants
+    const updateAnchorPosition = () => {
+        const childMeshes = targetMesh.getChildMeshes();
 
-    const hotspotEl = document.getElementById(`hotspot-${number}`);
-    if (!hotspotEl) return;
+        // Calculer le centre de tous les enfants
+        let min = new BABYLON.Vector3(Infinity, Infinity, Infinity);
+        let max = new BABYLON.Vector3(-Infinity, -Infinity, -Infinity);
 
-    const MAX_DISTANCE = 20;
+        childMeshes.forEach(mesh => {
+            mesh.computeWorldMatrix(true);
+            const boundingInfo = mesh.getBoundingInfo();
+            const bbMin = boundingInfo.boundingBox.minimumWorld;
+            const bbMax = boundingInfo.boundingBox.maximumWorld;
 
-    scene.onBeforeRenderObservable.add(() => {
+            min = BABYLON.Vector3.Minimize(min, bbMin);
+            max = BABYLON.Vector3.Maximize(max, bbMax);
+        });
 
-        const distance = BABYLON.Vector3.Distance(
-            camera.position,
-            hotspotAnchor.getAbsolutePosition()
-        );
+        anchor.position.copyFrom(min.add(max).scale(0.5));
+    };
 
-        if (distance > MAX_DISTANCE) {
-            hotspotEl.style.display = "none";
-            return;
-        }
+    // Position initiale
+    updateAnchorPosition();
 
-        const pos = BABYLON.Vector3.Project(
-            hotspotAnchor.getAbsolutePosition(),
-            BABYLON.Matrix.Identity(),
-            scene.getTransformMatrix(),
-            camera.viewport.toGlobal(
-                engine.getRenderWidth(),
-                engine.getRenderHeight()
-            )
-        );
+    // Mettre à jour la position à chaque frame pour suivre le mesh
+    scene.onBeforeRenderObservable.add(updateAnchorPosition);
 
-        hotspotEl.style.left = pos.x + "px";
-        hotspotEl.style.top = pos.y + "px";
+    // Créer un conteneur pour le hotspot
+    const container = new BABYLON.GUI.Ellipse(`hotspot-${number}`);
+    container.width = "32px";
+    container.height = "32px";
+    container.color = "white";
+    container.thickness = 2;
+    container.background = "white";
 
-        hotspotEl.style.display = pos.z < 0 ? "none" : "flex";
-    });
+    // Ajouter le numéro au centre
+    const textBlock = new BABYLON.GUI.TextBlock(`hotspot-text-${number}`, number.toString());
+    textBlock.color = "black";
+    textBlock.fontSize = "16px";
+    textBlock.fontWeight = "bold";
+    container.addControl(textBlock);
 
-    hotspotEl.addEventListener("click", () => {
-        focusCameraOnHotspot(
-            camera,
-            scene,
-            document.getElementById("renderCanvas"),
-            hotspotAnchor
-        );
+    // Ajouter au GUI AVANT de lier au mesh
+    advancedTexture.addControl(container);
 
+    // Maintenant lier le hotspot à l'ancre pour qu'il suive automatiquement
+    container.linkWithMesh(anchor);
+    container.linkOffsetY = -50; // Offset au-dessus du mesh
+
+    // Gestion du clic
+    container.onPointerClickObservable.add(() => {
+        focusCameraOnHotspot(camera, scene, targetMesh);
+
+        // Afficher l'info box (garder HTML pour cela)
         document.getElementById("infoTitle").innerText = `${number}. ${title}`;
-        document.getElementById("infoText").innerHTML = text; // ← HTML autorisé
+        document.getElementById("infoText").innerHTML = text;
         document.getElementById("infoBox").classList.remove("hidden");
     });
+
+    // Effet hover optionnel
+    container.onPointerEnterObservable.add(() => {
+        container.scaleX = 1.2;
+        container.scaleY = 1.2;
+    });
+
+    container.onPointerOutObservable.add(() => {
+        container.scaleX = 1;
+        container.scaleY = 1;
+    });
+
+    return container;
 }
 
 
 
-function focusCameraOnHotspot(camera, scene, canvas, target) {
-    const targetPos = target.getAbsolutePosition().clone(); // <-- toujours un Vector3
+function focusCameraOnHotspot(camera, scene, targetMesh) {
+    const targetPos = targetMesh.getBoundingInfo().boundingBox.centerWorld.clone();
 
+    const canvas = document.getElementById("renderCanvas");
     camera.detachControl(canvas);
 
-    const camPos = camera.position.clone();
-    const direction = targetPos.subtract(camPos).normalize();
+    // Calculer la taille du mesh pour ajuster le radius dynamiquement
+    const boundingInfo = targetMesh.getBoundingInfo();
+    const meshSize = boundingInfo.boundingBox.maximumWorld.subtract(
+        boundingInfo.boundingBox.minimumWorld
+    );
+    const maxDimension = Math.max(meshSize.x, meshSize.y, meshSize.z);
+    const targetRadius = Math.max(maxDimension * 3, 5); // Distance minimum de 2.5
 
-    const alpha = Math.atan2(direction.z, direction.x) + Math.PI / 2;
-    const beta = Math.acos(direction.y);
-    const targetRadius = 2.2; // zoom final
+    // Angles de vue optimaux pour regarder le mesh de face
+    const targetAlpha = Math.PI / 4; // 45° - positionné devant à droite
+    const targetBeta = Math.PI / 3;  // 60° - vue légèrement élevée
 
     const animTarget = new BABYLON.Animation(
         "animTarget",
@@ -85,7 +116,7 @@ function focusCameraOnHotspot(camera, scene, canvas, target) {
     );
     animAlpha.setKeys([
         { frame: 0, value: camera.alpha },
-        { frame: 60, value: alpha }
+        { frame: 60, value: targetAlpha }
     ]);
 
     const animBeta = new BABYLON.Animation(
@@ -97,7 +128,7 @@ function focusCameraOnHotspot(camera, scene, canvas, target) {
     );
     animBeta.setKeys([
         { frame: 0, value: camera.beta },
-        { frame: 60, value: beta }
+        { frame: 60, value: targetBeta }
     ]);
 
     const animRadius = new BABYLON.Animation(

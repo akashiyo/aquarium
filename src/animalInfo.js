@@ -80,7 +80,7 @@ export const animalInfo = {
             "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
     },
 
-    "animal_crossing_new_horizons_koi.glb": {
+    "octopus.glb": {
         number: 11,
         title: " ",
         text:  " <strong> Description : </strong>" +
@@ -96,4 +96,11 @@ export const animalInfo = {
             "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
     },
 
+    "lowpoly_fish.glb": {
+        number: 13,
+        title:  " ",
+        text:  " <strong> Description : </strong>" +
+            "<br> <strong> Localisation : </strong>" +
+            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
+    },
 };

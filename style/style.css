@@ -2,12 +2,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Chicle&family=Dongle&family=Kosugi+Maru&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 body {
-    margin: 0 !important;
+    margin: 0;
+    padding: 0;
     overflow: scroll;
     background-color: rgb(252, 252, 252);
 }
 #renderCanvas {
     overflow: scroll;
+    outline: none;
+    height: 100%;
+    width: 100%;
 }
 #infoBox {
     position: absolute;
@@ -20,25 +24,13 @@ body {
     border-radius: 10px;
     font-family: sans-serif;
     z-index: 10;
+    line-height: 1.5rem;
+    max-height: 25rem;
+    overflow-y: scroll;
 }
 
 .hidden {
     display: none;
-}
-
-.hotspot {
-    position: absolute;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: white;
-    color: black;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transform: translate(-50%, -50%);
 }
 
 br{
