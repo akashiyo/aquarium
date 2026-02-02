@@ -60,16 +60,16 @@ const CONFIG = {
         { file: "turtle.glb", count: 1, scale: 15, x: -15, y: 5, z: -10 },
         { file: "crab.glb", count: 10, scale: [2, 3], y: -23, x: 8, z: -8 },
         { file: "seahorse.glb", count: 10, scale: 0.35, x: -12, y: -15, z: 10 },
-        { file: "fish-nem.glb", count: 10, scale: 3.5, x: 10, y: -8, z: -5 },
+        { file: "fish-nem.glb", count: 10, scale: 1.7, x: 8, y: -20, z: -5 },
         { file: "fishie.glb", count: 6, scale: 0.80, x: 15, y: 8, z: 10 },
         { file: "koi_fish.glb", count: 5, scale: 0.90, x: -5, y: 15, z: -8 },
         { file: "red_betta_fish.glb", count: 7, scale: 0.01, x: 12, y: -5, z: 12 },
-        { file: "animal_crossing_new_horizons_octopus.glb", count: 1, scale: 1, x: -10, y: -24, z: -15 },
+        { file: "animal_crossing_new_horizons_octopus.glb", count: 1, scale: 1, x: -19, y: -23, z: -19 },
         { file: "fishoo.glb", count: 2, scale: 1, x: 5, y: 18, z: 5 },
         { file: "lowpoly_fish.glb", count: 1, scale: 0.2, x: -18, y: -12, z: 0 },
         { file: "octopus.glb", count: 1, scale: 0.5, x: -5, y: -18, z: -8 },
         { file: "pelagic_thresher_shark.glb", count: 1, scale: 0.05, x: -8, y: 12, z: 15, rotationX: Math.PI / 2 },
-        { file: "stylized_crab.glb", count: 2, scale: 30, x: -10, y: 20, z: -20 }
+        { file: "stylized_crab.glb", count: 2, scale: 7, x: -10, y: -21, z: -12 }
     ],
 
     groundElements: {
@@ -86,10 +86,19 @@ const CONFIG = {
             { file: "coral.glb", scale: 0.5, y: -24.5, min: 6, max: 10 },
             { file: "coral_piece.glb", scale: 1, y: -24.5, min: 4, max: 9 },
             { file: "algae.glb", scale: 5, y: -25.5, min: 3, max: 6 },
-            { file: "algas.glb", scale: 2, y: -49, min: 4, max: 15 },
+            { file: "algas.glb",  pos:{ x: -25, y: -48.5, z: 9 }, scale: 2, count:1},
+            { file: "algas.glb",  pos:{ x: -22, y: -48.5, z: -30 }, scale: 2, count:1},
+            { file: "algas.glb",  pos:{ x: -21, y: -37, z: -28 }, scale: 1, count:1},
+            { file: "algas.glb",  pos:{ x: -5, y: -48.5, z: -12 }, scale: 2, count:1},
+            { file: "algas.glb",  pos:{ x: -13, y: -37, z: -8 }, scale: 1, count:1},
+            { file: "algas.glb",  pos:{ x: 16, y: -48.5, z: -20 }, scale: 2, count:1},
+            { file: "algas.glb",  pos:{ x: 5, y: -37, z: 2 }, scale: 1, count:1},
+            { file: "algas.glb",  pos:{ x: 19, y: -37, z: 16 }, scale: 1, count:1},
             { file: "algas_calcareas.glb", scale: 0.08, y: -30, min: 7, max: 20 },
             { file: "blue_sea_anemone_l.glb", scale: 6, y: -23.4, min: 6, max: 10 },
-            { file: "coral_v2.0.glb", scale: 1.5, y: -5.5, min: 4, max: 22 },
+            { file:"coral_v2.0.glb", pos:{ x: 42, y: 1, z: -51 }, scale: 2 },
+            { file:"coral_v2.0.glb", pos:{ x: -2, y: -9.5, z: -2 }, scale: 1.2 },
+            { file:"coral_v2.0.glb", pos:{ x: 42, y: 7, z: -22}, scale: 2.5 },
             { file: "emberdrop_-_coral.glb", scale: 4, y: -25.5, min: 3, max: 5 },
             { file: "lambis_shell.glb", scale: 40, y: -25, min: 2, max: 3 },
             { file: "lowpoly_coral.glb", scale: 0.7, y: -24.8, min: 8, max: 21 },
@@ -264,10 +273,9 @@ function loadSingleModel(modelConfig, basePath, scene) {
  */
 function loadGroundElements(scene) {
     const config = CONFIG.groundElements;
-    const randAlgae = seededRandom(config.seed);
+    const rand = seededRandom(config.seed);
     const placedPositions = [];
 
-    // Check if position is far enough from all placed elements
     function isFarEnough(pos) {
         return placedPositions.every(p =>
             BABYLON.Vector3.Distance(p, pos) > config.minDistance
@@ -284,21 +292,38 @@ function loadGroundElements(scene) {
                 const template = meshes[0];
                 template.setEnabled(false);
 
-                // Determine count using seeded random (between min and max)
+                // Si une position FIXE est fournie
+                if (algae.pos) {
+                    const pos = new BABYLON.Vector3(algae.pos.x, algae.pos.y, algae.pos.z);
+
+                    // place exactement une instance ici
+                    const clone = template.clone(`${algae.file}_fixed`);
+                    clone.setEnabled(true);
+
+                    const s = algae.scale ?? 1;
+                    clone.scaling.set(s, s, s);
+
+                    // garde le centre / alignement bottom
+                    centerMeshXZAndGround(clone);
+
+                    clone.position = pos.clone();
+                    return;  // on ne fait pas l’aléatoire
+                }
+
+                // Sinon on fait l’aléatoire
                 const count = Math.floor(
-                    BABYLON.Scalar.Lerp(algae.min, algae.max, randAlgae())
+                    BABYLON.Scalar.Lerp(algae.min, algae.max, rand())
                 );
 
                 for (let i = 0; i < count; i++) {
                     let position;
                     let tries = 0;
 
-                    // Try to find a valid position that doesn't overlap
                     do {
                         position = new BABYLON.Vector3(
-                            BABYLON.Scalar.Lerp(config.groundMin, config.groundMax, randAlgae()),
+                            BABYLON.Scalar.Lerp(config.groundMin, config.groundMax, rand()),
                             algae.y,
-                            BABYLON.Scalar.Lerp(config.groundMin, config.groundMax, randAlgae())
+                            BABYLON.Scalar.Lerp(config.groundMin, config.groundMax, rand())
                         );
                         tries++;
                     } while (!isFarEnough(position) && tries < 30);
@@ -307,26 +332,21 @@ function loadGroundElements(scene) {
 
                     placedPositions.push(position.clone());
 
-                    // Create parent node for proper rotation after centering
                     const parent = new BABYLON.TransformNode(`${algae.file}_parent_${i}`, scene);
 
                     const clone = template.clone(`${algae.file}_${i}`);
                     clone.setEnabled(true);
 
-                    // Apply scale with slight variation
-                    const scaleFactor = BABYLON.Scalar.Lerp(0.8, 1.2, randAlgae());
-                    const finalScale = algae.scale * scaleFactor;
+                    const scaleFactor = BABYLON.Scalar.Lerp(0.8, 1.2, rand());
+                    const finalScale = (algae.scale ?? 1) * scaleFactor;
                     clone.scaling.set(finalScale, finalScale, finalScale);
 
-                    // Center and ground the mesh
                     centerMeshXZAndGround(clone);
 
-                    // Parent to transform node
                     clone.parent = parent;
                     parent.position = position;
 
-                    // Random rotation around Y axis
-                    parent.rotation.y = randAlgae() * Math.PI * 2;
+                    parent.rotation.y = rand() * Math.PI * 2;
                 }
             }
         );
