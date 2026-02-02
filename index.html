@@ -5,16 +5,34 @@
     <meta charset="UTF-8">
     <title>L'Aquarium</title>
     <link rel="stylesheet" href="/style/style.css" />
+    <script>
+        // Forcer le scroll en haut au chargement de la page
+        if (history.scrollRestoration) {
+            history.scrollRestoration = 'manual';
+        }
+        window.addEventListener('beforeunload', function () {
+            window.scrollTo(0, 0);
+        });
+    </script>
 </head>
 
 <body>
-    <div class="logo">
-        <h1>Aquascope</h1>
-        <img src="/assets/images/bulle.svg">
-    </div>
-    <p> Venez explorer les fonds-marins</p>
-    <div style="position:relative">
-        <canvas id="renderCanvas"></canvas>
+    <!-- Section d'accueil fullscreen -->
+    <section id="hero" class="hero-section">
+        <div class="hero-content">
+            <div class="logo">
+                <h1>Aquascope</h1>
+                <img src="/assets/images/bulle.svg">
+            </div>
+            <p class="hero-subtitle">Venez explorer les fonds-marins</p>
+            <a href="#aquarium" class="btn-discover">Découvrir</a>
+        </div>
+    </section>
+
+    <!-- Section de l'aquarium -->
+    <section id="aquarium" class="aquarium-section">
+        <div style="position:relative">
+            <canvas id="renderCanvas"></canvas>
 
         <div id="infoBox" class="hidden">
             <h3 id="infoTitle"></h3>
@@ -24,7 +42,8 @@
                 <button id="btnFutur" class="btn-hotspot">Futur</button>
             </div>
         </div>
-    </div>
+    </section>
+
     <!-- Babylon core -->
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
 
@@ -36,6 +55,15 @@
 
     <!-- Babylon GUI -->
     <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+    <script>
+        // Scroll vers le haut au chargement
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                window.scrollTo(0, 0);
+            }, 0);
+        });
+    </script>
 
     <script type="module" src="./src/main.js"></script>
 </body>
