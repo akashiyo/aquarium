@@ -147,9 +147,7 @@ body {
     background: rgba(255, 255, 255, 0.3);
 }
 
-br{
-    margin: 9px;
-}
+
 
 .logo{
     display: flex;
@@ -179,10 +177,21 @@ h1{
     50% { transform: translateY(-10px); }
 }
 
-p{
+h2{
     font-family: "Dongle", sans-serif;
     font-weight: 400;
     font-style: normal;
     font-size: 40px;
     margin-left: 5%;
+}
+
+p{
+    font-family: "Dongle", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 20px;
+}
+
+strong{
+    font-weight: 600;
 }
