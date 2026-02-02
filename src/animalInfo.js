@@ -16,7 +16,7 @@ export const animalInfo = {
             "<br> <strong> Alimentation : </strong> <ul> <li>Petits animaux planctoniques</li><li>Association avec les zooxanthelles pour se nourrir</li></ul>"
     },
 
-    "turtle.glb": {
+    "model_50a_-_hawksbill_sea_turtle.glb": {
         number: 3,
         title: "Tortue Marine",
         text: " <strong> Description : </strong>Les tortues marines sont des tortues qui vivent des les océans et mers. Elles doivent remonter à la surface pour respirer de l'air et ne viennent à terre que pour se reproduire en pondant leurs œufs qu'elles enterrent dans le sable d'une plage. " +

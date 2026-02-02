@@ -57,7 +57,7 @@ const CONFIG = {
     animals: [
         { file: "fish.glb", count: 3, scale: 0.01, x: -8, y: 0, z: 8 },
         { file: "jellyfish.glb", count: 4, scale: [0.0010, 0.0015, 0.0020], x: 0, y: 12, z: 0 },
-        { file: "turtle.glb", count: 1, scale: 15, x: -15, y: 5, z: -10 },
+        { file: "model_50a_-_hawksbill_sea_turtle.glb", count: 1, scale: 15, x: -15, y: 5, z: -10 },
         { file: "crab.glb", count: 10, scale: [2, 3], y: -23, x: 8, z: -8 },
         { file: "seahorse.glb", count: 10, scale: 0.35, x: -12, y: -15, z: 10 },
         { file: "fish-nem.glb", count: 10, scale: 1.7, x: 8, y: -20, z: -5 },
@@ -104,8 +104,8 @@ const CONFIG = {
             { file: "lowpoly_coral.glb", scale: 0.7, y: -24.8, min: 8, max: 21 },
             { file: "pink_sea_anemone_l.glb", scale: 6, y: -24, min: 2, max: 3 },
             { file: "pocillopora_eydouxi.glb", scale: 0.3, y: -23, min: 7, max: 14 },
-            { file: "purple_sea_anemone_l.glb", scale: 5, y: -24.5, min: 1, max: 3 },
-            { file: "rainbow_haven_reef_-_coral.glb", scale: 5, y: -25.5, min: 1, max: 2 }
+            { file: "purple_sea_anemone_l.glb", scale: 5, y: -24.5, min: 2, max: 3 },
+            { file: "rainbow_haven_reef_-_coral.glb", scale: 5, y: -25.5, min: 2, max: 2 }
         ]
     },
 
