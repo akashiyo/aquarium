@@ -1,3 +1,5 @@
+import { setCurrentHotspot } from "./animation.js";
+
 export function createHotspot(scene, camera, advancedTexture, targetMesh, number, title, text) {
     // Créer un point d'ancrage indépendant pour le hotspot
     const anchor = new BABYLON.TransformNode(`hotspot-anchor-${number}`, scene);
@@ -54,6 +56,14 @@ export function createHotspot(scene, camera, advancedTexture, targetMesh, number
     // Gestion du clic
     container.onPointerClickObservable.add(() => {
         focusCameraOnHotspot(camera, scene, targetMesh);
+
+        // Stocker les données du hotspot pour le module animation
+        setCurrentHotspot({
+            scene: scene,
+            targetMesh: targetMesh,
+            number: number,
+            title: title
+        });
 
         // Afficher l'info box (garder HTML pour cela)
         document.getElementById("infoTitle").innerText = `${number}. ${title}`;
