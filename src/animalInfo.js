@@ -103,4 +103,12 @@ export const animalInfo = {
             "<br> <strong> Localisation : </strong>" +
             "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
     },
+
+    "stylized_crab.glb": {
+        number: 14,
+        title:  " ",
+        text:  " <strong> Description : </strong>" +
+            "<br> <strong> Localisation : </strong>" +
+            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>"
+    },
 };

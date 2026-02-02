@@ -78,16 +78,15 @@ export function createHotspot(scene, camera, advancedTexture, targetMesh, number
 
 
 function focusCameraOnHotspot(camera, scene, targetMesh) {
-    const targetPos = targetMesh.getBoundingInfo().boundingBox.centerWorld.clone();
+    // Utiliser getHierarchyBoundingVectors pour inclure tous les meshes enfants
+    const bounds = targetMesh.getHierarchyBoundingVectors(true);
+    const targetPos = bounds.min.add(bounds.max).scale(0.5);
 
     const canvas = document.getElementById("renderCanvas");
     camera.detachControl(canvas);
 
     // Calculer la taille du mesh pour ajuster le radius dynamiquement
-    const boundingInfo = targetMesh.getBoundingInfo();
-    const meshSize = boundingInfo.boundingBox.maximumWorld.subtract(
-        boundingInfo.boundingBox.minimumWorld
-    );
+    const meshSize = bounds.max.subtract(bounds.min);
     const maxDimension = Math.max(meshSize.x, meshSize.y, meshSize.z);
     const targetRadius = Math.max(maxDimension * 3, 5); // Distance minimum de 2.5
 

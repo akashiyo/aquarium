@@ -2,6 +2,20 @@ import { createHotspot } from "./point.js";
 import { animalInfo } from "./animalInfo.js";
 
 // ============================================================================
+// SEEDED RANDOM (for reproducible ground element placement)
+// ============================================================================
+
+function seededRandom(seed) {
+    let value = seed % 2147483647;
+    if (value <= 0) value += 2147483646;
+
+    return function () {
+        value = value * 16807 % 2147483647;
+        return (value - 1) / 2147483646;
+    };
+}
+
+// ============================================================================
 // CONFIGURATION
 // ============================================================================
 
@@ -54,17 +68,37 @@ const CONFIG = {
         { file: "fishoo.glb", count: 2, scale: 1, x: 5, y: 18, z: 5 },
         { file: "lowpoly_fish.glb", count: 1, scale: 0.2, x: -18, y: -12, z: 0 },
         { file: "octopus.glb", count: 1, scale: 0.5, x: -5, y: -18, z: -8 },
-        { file: "pelagic_thresher_shark.glb", count: 1, scale: 0.05, x: -8, y: 12, z: 15 },
-        { file: "stylized_crab.glb", count: 2, scale: 1, x: -15, y: -22, z: 8 }
+        { file: "pelagic_thresher_shark.glb", count: 1, scale: 0.05, x: -8, y: 12, z: 15, rotationX: Math.PI / 2 },
+        { file: "stylized_crab.glb", count: 2, scale: 30, x: -10, y: 20, z: -20 }
     ],
 
-    groundElements: [
-        { file: "alga.glb", x: -18, z: -20, scale: 2, y: -25, count: 30, spacing: 3 },
-        { file: "alga.glb", x: 15, z: -20, scale: 2, y: -25, count: 30, spacing: 3 },
-        { file: "alga.glb", x: -12, z: 12, scale: 2, y: -25, count: 10, spacing: 3 },
-        { file: "alga.glb", x: 12, z: -8, scale: 2, y: -25, count: 10, spacing: 3 },
-        { file: "algue_rouge_actuelle.glb", x: 0, z: 18, scale: 2, y: -25, count: 1, spacing: 3 }
-    ],
+    groundElements: {
+        seed: 987654,
+        groundMin: -20,
+        groundMax: 20,
+        minDistance: 2.2,
+        types: [
+            { file: "alga.glb", scale: 2.5, y: -24, min: 8, max: 30 },
+            { file: "algue_rouge_actuelle.glb", scale: 1.2, y: -24.5, min: 15, max: 25 },
+            { file: "blue_sea_anemone_l.glb", scale: 4.2, y: -24.5, min: 6, max: 10 },
+            { file: "coral(1).glb", scale: 1, y: -24.5, min: 3, max: 7 },
+            { file: "algue_rouge_actuelle.glb", scale: 2.8, y: -24.5, min: 6, max: 22 },
+            { file: "coral.glb", scale: 0.5, y: -24.5, min: 6, max: 10 },
+            { file: "coral_piece.glb", scale: 1, y: -24.5, min: 4, max: 9 },
+            { file: "algae.glb", scale: 5, y: -25.5, min: 3, max: 6 },
+            { file: "algas.glb", scale: 2, y: -49, min: 4, max: 15 },
+            { file: "algas_calcareas.glb", scale: 0.08, y: -30, min: 7, max: 20 },
+            { file: "blue_sea_anemone_l.glb", scale: 6, y: -23.4, min: 6, max: 10 },
+            { file: "coral_v2.0.glb", scale: 1.5, y: -5.5, min: 4, max: 22 },
+            { file: "emberdrop_-_coral.glb", scale: 4, y: -25.5, min: 3, max: 5 },
+            { file: "lambis_shell.glb", scale: 40, y: -25, min: 2, max: 3 },
+            { file: "lowpoly_coral.glb", scale: 0.7, y: -24.8, min: 8, max: 21 },
+            { file: "pink_sea_anemone_l.glb", scale: 6, y: -24, min: 2, max: 3 },
+            { file: "pocillopora_eydouxi.glb", scale: 0.3, y: -23, min: 7, max: 14 },
+            { file: "purple_sea_anemone_l.glb", scale: 5, y: -24.5, min: 1, max: 3 },
+            { file: "rainbow_haven_reef_-_coral.glb", scale: 5, y: -25.5, min: 1, max: 2 }
+        ]
+    },
 
     rocks: [
         { file: "lyme_bay.glb", scale: 0.8, y: -24.5 }
@@ -102,6 +136,23 @@ function applyDefaults(config, defaults) {
     return { ...defaults, ...config };
 }
 
+/**
+ * Center mesh on X/Z axes and ground it (set bottom to Y=0)
+ */
+function centerMeshXZAndGround(mesh) {
+    mesh.computeWorldMatrix(true);
+    const boundingInfo = mesh.getBoundingInfo();
+    const bbox = boundingInfo.boundingBox;
+
+    const centerX = (bbox.maximumWorld.x + bbox.minimumWorld.x) / 2;
+    const centerZ = (bbox.maximumWorld.z + bbox.minimumWorld.z) / 2;
+    const bottomY = bbox.minimumWorld.y;
+
+    mesh.position.x -= centerX;
+    mesh.position.z -= centerZ;
+    mesh.position.y -= bottomY;
+}
+
 // ============================================================================
 // MODEL LOADING
 // ============================================================================
@@ -135,8 +186,29 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
                 const scaleValue = getScaleValue(config.scale);
                 clone.scaling.scaleInPlace(scaleValue);
 
-                // Apply position
-                clone.position = createGridPosition(baseX, baseY, baseZ, i, spacing);
+                // Recalculer le bounding box après le scaling
+                clone.refreshBoundingInfo();
+
+                // Calculer le décalage du centre du bounding box par rapport à la position du mesh
+                // Cela corrige les modèles dont le pivot n'est pas au centre géométrique
+                const boundingInfo = clone.getHierarchyBoundingVectors(true);
+                const center = boundingInfo.min.add(boundingInfo.max).scale(0.5);
+                const pivotOffset = center.subtract(clone.position);
+
+                // Apply position avec compensation du décalage de pivot
+                const targetPosition = createGridPosition(baseX, baseY, baseZ, i, spacing);
+                clone.position = targetPosition.subtract(pivotOffset);
+
+                // Apply rotation (with optional initial rotations from config)
+                // Appliquer aux meshes enfants aussi car certains modèles GLB ont leur géométrie dans les enfants
+                if (config.rotationX) {
+                    clone.rotation.x = config.rotationX;
+                    clone.getChildMeshes().forEach(child => child.rotation.x = config.rotationX);
+                }
+                if (config.rotationZ) {
+                    clone.rotation.z = config.rotationZ;
+                    clone.getChildMeshes().forEach(child => child.rotation.z = config.rotationZ);
+                }
                 clone.rotation.y = Math.random() * Math.PI * 2;
 
                 // Add metadata for animation (only for animals)
@@ -187,6 +259,80 @@ function loadSingleModel(modelConfig, basePath, scene) {
     );
 }
 
+/**
+ * Load ground elements with seeded random placement and collision avoidance
+ */
+function loadGroundElements(scene) {
+    const config = CONFIG.groundElements;
+    const randAlgae = seededRandom(config.seed);
+    const placedPositions = [];
+
+    // Check if position is far enough from all placed elements
+    function isFarEnough(pos) {
+        return placedPositions.every(p =>
+            BABYLON.Vector3.Distance(p, pos) > config.minDistance
+        );
+    }
+
+    config.types.forEach(algae => {
+        BABYLON.SceneLoader.ImportMesh(
+            "",
+            "./assets/models/ground/ground/",
+            algae.file,
+            scene,
+            (meshes) => {
+                const template = meshes[0];
+                template.setEnabled(false);
+
+                // Determine count using seeded random (between min and max)
+                const count = Math.floor(
+                    BABYLON.Scalar.Lerp(algae.min, algae.max, randAlgae())
+                );
+
+                for (let i = 0; i < count; i++) {
+                    let position;
+                    let tries = 0;
+
+                    // Try to find a valid position that doesn't overlap
+                    do {
+                        position = new BABYLON.Vector3(
+                            BABYLON.Scalar.Lerp(config.groundMin, config.groundMax, randAlgae()),
+                            algae.y,
+                            BABYLON.Scalar.Lerp(config.groundMin, config.groundMax, randAlgae())
+                        );
+                        tries++;
+                    } while (!isFarEnough(position) && tries < 30);
+
+                    if (tries >= 30) continue;
+
+                    placedPositions.push(position.clone());
+
+                    // Create parent node for proper rotation after centering
+                    const parent = new BABYLON.TransformNode(`${algae.file}_parent_${i}`, scene);
+
+                    const clone = template.clone(`${algae.file}_${i}`);
+                    clone.setEnabled(true);
+
+                    // Apply scale with slight variation
+                    const scaleFactor = BABYLON.Scalar.Lerp(0.8, 1.2, randAlgae());
+                    const finalScale = algae.scale * scaleFactor;
+                    clone.scaling.set(finalScale, finalScale, finalScale);
+
+                    // Center and ground the mesh
+                    centerMeshXZAndGround(clone);
+
+                    // Parent to transform node
+                    clone.parent = parent;
+                    parent.position = position;
+
+                    // Random rotation around Y axis
+                    parent.rotation.y = randAlgae() * Math.PI * 2;
+                }
+            }
+        );
+    });
+}
+
 // ============================================================================
 // SCENE CREATION
 // ============================================================================
@@ -201,7 +347,7 @@ const createScene = function() {
     // Light
     new BABYLON.HemisphericLight(
         "light",
-        new BABYLON.Vector3(5, 1, 0),
+        new BABYLON.Vector3(0, 0, 0),
         scene
     );
 
@@ -249,14 +395,12 @@ CONFIG.animals.forEach(animalConfig => {
     loadModel(animalConfig, "./assets/models/animals/", scene, { isAnimal: true });
 });
 
-// Load ground elements (algae)
-CONFIG.groundElements.forEach(elementConfig => {
-    loadModel(elementConfig, "./assets/models/ground/", scene, { isAnimal: false });
-});
+// Load ground elements (algae, corals, anemones) with seeded random placement
+loadGroundElements(scene);
 
 // Load rocks
 CONFIG.rocks.forEach(rockConfig => {
-    loadSingleModel(rockConfig, "./assets/models/ground/", scene);
+    loadSingleModel(rockConfig, "./assets/models/ground/ground/", scene);
 });
 
 // Ground with sand texture
