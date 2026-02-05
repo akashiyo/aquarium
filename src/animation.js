@@ -234,7 +234,7 @@ export function triggerAnimation() {
     const hasNativeAnim = playNativeAnimations(animationGroups);
 
     if (hasNativeAnim) {
-        console.log(`✨ Animation native trouvée et jouée`);
+        console.log(`Animation native trouvée et jouée`);
     }
 
     // Vérifier si cet animal est exclu de l'animation en cercle
@@ -247,13 +247,6 @@ export function triggerAnimation() {
     animateCircleMovement(scene, clones);
 }
 
-/**
- * Fonction placeholder pour le bouton Futur
- */
-export function triggerFutur() {
-    console.log("Bouton Futur cliqué - fonctionnalité à venir");
-}
-
 // ============================================================================
 // INITIALISATION DES BOUTONS
 // ============================================================================
@@ -263,19 +256,11 @@ export function triggerFutur() {
  */
 export function initAnimationButtons() {
     const btnAnimation = document.getElementById("btnAnimation");
-    const btnFutur = document.getElementById("btnFutur");
 
     if (btnAnimation) {
         btnAnimation.addEventListener("click", (e) => {
             e.stopPropagation();
             triggerAnimation();
-        });
-    }
-
-    if (btnFutur) {
-        btnFutur.addEventListener("click", (e) => {
-            e.stopPropagation();
-            triggerFutur();
         });
     }
 }

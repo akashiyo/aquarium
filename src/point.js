@@ -1,6 +1,7 @@
 import { setCurrentHotspot } from "./animation.js";
+import { animalInfo } from "./animalInfo.js";
 
-export function createHotspot(scene, camera, advancedTexture, targetMesh, number, title, text) {
+export function createHotspot(scene, camera, advancedTexture, targetMesh, number, title, text, fileName) {
     // Créer un point d'ancrage indépendant pour le hotspot
     const anchor = new BABYLON.TransformNode(`hotspot-anchor-${number}`, scene);
 
@@ -68,6 +69,18 @@ export function createHotspot(scene, camera, advancedTexture, targetMesh, number
         // Afficher l'info box (garder HTML pour cela)
         document.getElementById("infoTitle").innerText = `${number}. ${title}`;
         document.getElementById("infoText").innerHTML = text;
+
+        // Afficher ou masquer le bouton Animation selon hasAnimation
+        const btnAnimation = document.getElementById("btnAnimation");
+        const info = animalInfo[fileName];
+        if (btnAnimation) {
+            if (info && info.hasAnimation) {
+                btnAnimation.style.display = "block";
+            } else {
+                btnAnimation.style.display = "none";
+            }
+        }
+
         document.getElementById("infoBox").classList.remove("hidden");
     });
 

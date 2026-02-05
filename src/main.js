@@ -224,7 +224,8 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
                 if (options.isAnimal) {
                     clone.metadata = {
                         speed: BABYLON.Scalar.RandomRange(0.005, 0.02),
-                        turn: Math.random() > 0.5 ? 1 : -1
+                        turn: Math.random() > 0.5 ? 1 : -1,
+                        animalType: config.file // Stocker le type d'animal
                     };
 
                     // Create hotspot for first clone only
@@ -238,9 +239,30 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
                                 clone,
                                 info.number,
                                 info.title,
-                                info.text
+                                info.text,
+                                config.file
                             );
                         }
+                    }
+
+                    // Ajouter un event listener pour le clic sur les animaux bioluminescents
+                    const animalType = getAnimalTypeFromMesh(clone.name);
+                    if (animalType) {
+                        // Attacher l'ActionManager au clone principal ET à tous ses enfants
+                        const meshesToMakeClickable = [clone, ...clone.getChildMeshes()];
+
+                        meshesToMakeClickable.forEach(mesh => {
+                            mesh.actionManager = new BABYLON.ActionManager(scene);
+                            mesh.actionManager.registerAction(
+                                new BABYLON.ExecuteCodeAction(
+                                    BABYLON.ActionManager.OnPickTrigger,
+                                    () => {
+                                        console.log(`🖱️ Clic détecté sur ${mesh.name}`);
+                                        toggleIndividualBioluminescence(animalType);
+                                    }
+                                )
+                            );
+                        });
                     }
                 }
             }
@@ -632,13 +654,26 @@ canvas.addEventListener("wheel", (event) => {
 
 // Liste des animaux pouvant être bioluminescents
 const BIOLUMINESCENT_ANIMALS = [
+    'fish.glb',
     'jellyfish.glb',
+    'model_50a_-_hawksbill_sea_turtle.glb',
+    'crab.glb',
+    'seahorse.glb',
+    'fish-nem.glb',
+    'fishie.glb',
+    'koi_fish.glb',
+    'red_betta_fish.glb',
+    'animal_crossing_new_horizons_octopus.glb',
+    'fishoo.glb',
+    'lowpoly_fish.glb',
     'octopus.glb',
-    'animal_crossing_new_horizons_octopus.glb'
+    'pelagic_thresher_shark.glb',
+    'stylized_crab.glb'
 ];
 
 let isBioActive = false;
 const bioMaterials = []; // Stocke les matériaux originaux pour restauration
+const individualBioTypes = new Set(); // Stocke les types d'animaux avec bio individuelle activée
 
 const bioBtn = document.getElementById('bioBtn');
 if (bioBtn) {
@@ -662,7 +697,12 @@ function activateBioluminescence() {
             mesh.name.includes(bioAnimal.replace('.glb', ''))
         );
 
-        if (isBio && mesh.material) {
+        // Ne pas activer si ce type a déjà la bio individuelle
+        const hasIndividualBio = Array.from(individualBioTypes).some(type =>
+            mesh.name.includes(type.replace('.glb', ''))
+        );
+
+        if (isBio && mesh.material && !hasIndividualBio) {
             // Sauvegarder le matériau original
             bioMaterials.push({
                 mesh: mesh,
@@ -670,13 +710,29 @@ function activateBioluminescence() {
                 originalEmissive: mesh.material.emissiveColor ? mesh.material.emissiveColor.clone() : null
             });
 
-            // Créer l'effet bioluminescent
+            // Créer l'effet bioluminescent avec des couleurs selon le type
             if (mesh.name.includes('jellyfish')) {
-                // Méduses: bleu cyan lumineux
-                mesh.material.emissiveColor = new BABYLON.Color3(0.2, 0.8, 1);
+                mesh.material.emissiveColor = new BABYLON.Color3(0.2, 0.8, 1); // Bleu cyan
             } else if (mesh.name.includes('octopus')) {
-                // Pieuvres: violet/rose lumineux
-                mesh.material.emissiveColor = new BABYLON.Color3(0.8, 0.2, 1);
+                mesh.material.emissiveColor = new BABYLON.Color3(0.8, 0.2, 1); // Violet/rose
+            } else if (mesh.name.includes('fish.glb') || mesh.name.includes('fishie') || mesh.name.includes('fishoo') || mesh.name.includes('lowpoly_fish')) {
+                mesh.material.emissiveColor = new BABYLON.Color3(0.3, 1, 0.5); // Vert lumineux
+            } else if (mesh.name.includes('fish-nem')) {
+                mesh.material.emissiveColor = new BABYLON.Color3(1, 0.5, 0); // Orange (poisson clown)
+            } else if (mesh.name.includes('koi_fish')) {
+                mesh.material.emissiveColor = new BABYLON.Color3(1, 0.8, 0.2); // Jaune/or
+            } else if (mesh.name.includes('red_betta_fish')) {
+                mesh.material.emissiveColor = new BABYLON.Color3(1, 0.1, 0.3); // Rouge vif
+            } else if (mesh.name.includes('seahorse')) {
+                mesh.material.emissiveColor = new BABYLON.Color3(1, 1, 0.4); // Jaune clair
+            } else if (mesh.name.includes('turtle')) {
+                mesh.material.emissiveColor = new BABYLON.Color3(0.4, 1, 0.8); // Turquoise
+            } else if (mesh.name.includes('crab')) {
+                mesh.material.emissiveColor = new BABYLON.Color3(1, 0.3, 0.1); // Orange-rouge
+            } else if (mesh.name.includes('shark')) {
+                mesh.material.emissiveColor = new BABYLON.Color3(0.5, 0.7, 1); // Bleu pâle
+            } else {
+                mesh.material.emissiveColor = new BABYLON.Color3(0.6, 0.9, 1); // Bleu par défaut
             }
 
             // Augmenter la luminosité
@@ -701,28 +757,134 @@ function activateBioluminescence() {
         }
     });
 
-    console.log("✨ Mode bioluminescence activé");
+    console.log("Mode bioluminescence activé");
 }
 
 function deactivateBioluminescence() {
     // Restaurer les matériaux originaux
     bioMaterials.forEach(({ mesh, originalMaterial, originalEmissive }) => {
-        if (mesh.material) {
-            mesh.material.emissiveColor = originalEmissive || new BABYLON.Color3(0, 0, 0);
-            mesh.material.emissiveIntensity = 0;
-        }
+        // Ne pas désactiver si ce type a la bio individuelle
+        const hasIndividualBio = Array.from(individualBioTypes).some(type =>
+            mesh.name.includes(type.replace('.glb', ''))
+        );
 
-        // Supprimer la lumière ponctuelle
-        if (mesh.metadata && mesh.metadata.bioLight) {
-            mesh.metadata.bioLight.dispose();
-            delete mesh.metadata.bioLight;
+        if (!hasIndividualBio) {
+            if (mesh.material) {
+                mesh.material.emissiveColor = originalEmissive || new BABYLON.Color3(0, 0, 0);
+                mesh.material.emissiveIntensity = 0;
+            }
+
+            // Supprimer la lumière ponctuelle
+            if (mesh.metadata && mesh.metadata.bioLight) {
+                mesh.metadata.bioLight.dispose();
+                delete mesh.metadata.bioLight;
+            }
         }
     });
 
-    // Vider le tableau
+    // Vider le tableau (garder seulement ceux en mode individuel)
     bioMaterials.length = 0;
 
     console.log("🌑 Mode bioluminescence désactivé");
+}
+
+/**
+ * Active/désactive la bioluminescence pour un type d'animal spécifique
+ */
+function toggleIndividualBioluminescence(animalType) {
+    // Vérifier si ce type est bioluminescent
+    const isBioType = BIOLUMINESCENT_ANIMALS.includes(animalType);
+    if (!isBioType) {
+        console.log(`${animalType} n'est pas un animal bioluminescent`);
+        return;
+    }
+
+    const baseFileName = animalType.replace('.glb', '');
+    const isActive = individualBioTypes.has(animalType);
+
+    if (isActive) {
+        // Désactiver la bioluminescence pour ce type
+        individualBioTypes.delete(animalType);
+
+        scene.meshes.forEach(mesh => {
+            if (mesh.name.includes(baseFileName)) {
+                if (mesh.material) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(0, 0, 0);
+                    mesh.material.emissiveIntensity = 0;
+                }
+
+                if (mesh.metadata && mesh.metadata.bioLight) {
+                    mesh.metadata.bioLight.dispose();
+                    delete mesh.metadata.bioLight;
+                }
+            }
+        });
+
+        console.log(`🌑 Bioluminescence désactivée pour ${animalType}`);
+    } else {
+        // Activer la bioluminescence pour ce type
+        individualBioTypes.add(animalType);
+
+        scene.meshes.forEach(mesh => {
+            if (mesh.name.includes(baseFileName) && mesh.material) {
+                // Créer l'effet bioluminescent avec des couleurs selon le type
+                if (mesh.name.includes('jellyfish')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(0.2, 0.8, 1); // Bleu cyan
+                } else if (mesh.name.includes('octopus')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(0.8, 0.2, 1); // Violet/rose
+                } else if (mesh.name.includes('fish.glb') || mesh.name.includes('fishie') || mesh.name.includes('fishoo') || mesh.name.includes('lowpoly_fish')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(0.3, 1, 0.5); // Vert lumineux
+                } else if (mesh.name.includes('fish-nem')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(1, 0.5, 0); // Orange (poisson clown)
+                } else if (mesh.name.includes('koi_fish')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(1, 0.8, 0.2); // Jaune/or
+                } else if (mesh.name.includes('red_betta_fish')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(1, 0.1, 0.3); // Rouge vif
+                } else if (mesh.name.includes('seahorse')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(1, 1, 0.4); // Jaune clair
+                } else if (mesh.name.includes('turtle')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(0.4, 1, 0.8); // Turquoise
+                } else if (mesh.name.includes('crab')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(1, 0.3, 0.1); // Orange-rouge
+                } else if (mesh.name.includes('shark')) {
+                    mesh.material.emissiveColor = new BABYLON.Color3(0.5, 0.7, 1); // Bleu pâle
+                } else {
+                    mesh.material.emissiveColor = new BABYLON.Color3(0.6, 0.9, 1); // Bleu par défaut
+                }
+
+                mesh.material.emissiveIntensity = 0.8;
+
+                // Créer une lumière ponctuelle
+                const glowLight = new BABYLON.PointLight(
+                    `bioLight_${mesh.name}`,
+                    mesh.position.clone(),
+                    scene
+                );
+                glowLight.intensity = 2;
+                glowLight.range = 8;
+                glowLight.diffuse = mesh.material.emissiveColor.clone();
+                glowLight.parent = mesh;
+
+                mesh.metadata = mesh.metadata || {};
+                mesh.metadata.bioLight = glowLight;
+            }
+        });
+
+        console.log(`Bioluminescence activée pour ${animalType}`);
+    }
+}
+
+/**
+ * Détermine le type d'animal à partir du nom du mesh
+ */
+function getAnimalTypeFromMesh(meshName) {
+    for (const bioAnimal of BIOLUMINESCENT_ANIMALS) {
+        const baseName = bioAnimal.replace('.glb', '');
+        if (meshName.includes(baseName)) {
+            return bioAnimal;
+        }
+    }
+    return null;
 }
 
 // ============================================================================
