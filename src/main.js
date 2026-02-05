@@ -66,7 +66,7 @@ const CONFIG = {
         { file: "red_betta_fish.glb", count: 7, scale: 0.01, x: 12, y: -5, z: 12 },
         { file: "animal_crossing_new_horizons_octopus.glb", count: 1, scale: 1, x: -19, y: -23, z: -19 },
         { file: "fishoo.glb", count: 2, scale: 1, x: 5, y: 18, z: 5 },
-        { file: "lowpoly_fish.glb", count: 1, scale: 0.2, x: -18, y: -12, z: 0 },
+        { file: "lowpoly_fish.glb", count: 4, scale: 0.2, x: -18, y: -12, z: 0 },
         { file: "octopus.glb", count: 1, scale: 0.5, x: -5, y: -18, z: -8 },
         { file: "pelagic_thresher_shark.glb", count: 1, scale: 0.05, x: -8, y: 12, z: 15, rotationX: Math.PI / 2 },
         { file: "stylized_crab.glb", count: 2, scale: 7, x: -10, y: -21, z: -12 }
@@ -360,16 +360,22 @@ function loadGroundElements(scene) {
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
 
+// Variable globale pour la lumière (pour le contrôle jour/nuit)
+let light;
+
 const createScene = function() {
     const scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-    // Light
-    new BABYLON.HemisphericLight(
+    // Light principale (contrôlée par le slider)
+    light = new BABYLON.HemisphericLight(
         "light",
-        new BABYLON.Vector3(0, 0, 0),
+        new BABYLON.Vector3(0, 1, 0),
         scene
     );
+    light.intensity = 1;
+    light.diffuse = new BABYLON.Color3(1, 1, 1); // Blanc jour
+    light.groundColor = new BABYLON.Color3(0.5, 0.7, 1); // Bleu clair au sol
 
     // Aquarium box
     const aquarium = BABYLON.MeshBuilder.CreateBox(
@@ -442,6 +448,175 @@ ground.material = groundMat;
 ground.position.y = CONFIG.ground.positionY;
 
 // ============================================================================
+// CONTRÔLE JOUR/NUIT
+// ============================================================================
+
+const timeSlider = document.getElementById('timeSlider');
+const timeLabel = document.getElementById('timeLabel');
+
+if (timeSlider && timeLabel) {
+    timeSlider.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+
+        // Interpoler entre jour (0), coucher de soleil (50), et nuit (100)
+        let lightColor, groundColor, intensity, label, clearColor;
+
+        if (value <= 50) {
+            // Jour → Coucher de soleil
+            const t = value / 50; // 0 à 1
+
+            // Couleur principale: blanc → orange
+            lightColor = new BABYLON.Color3(
+                1,
+                1 - t * 0.3,  // 1 → 0.7
+                1 - t * 0.6   // 1 → 0.4
+            );
+
+            // Couleur du sol: bleu clair → orange sombre
+            groundColor = new BABYLON.Color3(
+                0.5 + t * 0.4,  // 0.5 → 0.9
+                0.7 - t * 0.2,  // 0.7 → 0.5
+                1 - t * 0.7     // 1 → 0.3
+            );
+
+            intensity = 1 - t * 0.3; // 1 → 0.7
+            label = value < 25 ? 'Jour' : 'Coucher de soleil';
+
+            // Background ciel
+            clearColor = new BABYLON.Color4(
+                t * 0.1,
+                t * 0.05,
+                t * 0.05,
+                1
+            );
+        } else {
+            // Coucher de soleil → Nuit
+            const t = (value - 50) / 50; // 0 à 1
+
+            // Couleur principale: orange → bleu nuit
+            lightColor = new BABYLON.Color3(
+                1 - t * 0.8,    // 1 → 0.2
+                0.7 - t * 0.5,  // 0.7 → 0.2
+                0.4 + t * 0.4   // 0.4 → 0.8
+            );
+
+            // Couleur du sol: orange sombre → bleu très sombre
+            groundColor = new BABYLON.Color3(
+                0.9 - t * 0.7,  // 0.9 → 0.2
+                0.5 - t * 0.3,  // 0.5 → 0.2
+                0.3 + t * 0.2   // 0.3 → 0.5
+            );
+
+            intensity = 0.7 - t * 0.4; // 0.7 → 0.3
+            label = 'Nuit';
+
+            // Background nuit
+            clearColor = new BABYLON.Color4(
+                0.1 - t * 0.05,
+                0.05 - t * 0.03,
+                0.05 + t * 0.1,
+                1
+            );
+        }
+
+        // Appliquer les changements
+        light.diffuse = lightColor;
+        light.groundColor = groundColor;
+        light.intensity = intensity;
+        scene.clearColor = clearColor;
+        timeLabel.textContent = label;
+    });
+}
+
+// ============================================================================
+// BUBBLE TRAIL EFFECT (Mouse Interaction)
+// ============================================================================
+
+// Créer un système de particules pour les bulles
+const bubbleSystem = new BABYLON.ParticleSystem("bubbles", 2000, scene);
+bubbleSystem.particleTexture = new BABYLON.Texture("https://playground.babylonjs.com/textures/flare.png", scene);
+
+// Emetteur initial (sera mis à jour)
+const bubbleEmitter = BABYLON.MeshBuilder.CreateSphere("bubbleEmitter", { diameter: 0.1 }, scene);
+bubbleEmitter.isVisible = false;
+bubbleSystem.emitter = bubbleEmitter;
+
+// Zone d'émission locale
+bubbleSystem.minEmitBox = new BABYLON.Vector3(-0.2, -0.2, -0.2);
+bubbleSystem.maxEmitBox = new BABYLON.Vector3(0.2, 0.2, 0.2);
+
+// Apparence des bulles
+bubbleSystem.color1 = new BABYLON.Color4(0.8, 0.95, 1, 1);
+bubbleSystem.color2 = new BABYLON.Color4(0.6, 0.85, 1, 0.8);
+bubbleSystem.colorDead = new BABYLON.Color4(0.5, 0.7, 1, 0);
+
+// Taille des bulles (plus grandes)
+bubbleSystem.minSize = 0.3;
+bubbleSystem.maxSize = 0.8;
+
+// Durée de vie
+bubbleSystem.minLifeTime = 1.5;
+bubbleSystem.maxLifeTime = 3;
+
+// Vitesse d'émission (continue mais faible par défaut)
+bubbleSystem.emitRate = 0;
+
+// Direction des bulles (vers le haut avec variation)
+bubbleSystem.direction1 = new BABYLON.Vector3(-0.5, 0.8, -0.5);
+bubbleSystem.direction2 = new BABYLON.Vector3(0.5, 1.2, 0.5);
+
+// Vitesse
+bubbleSystem.minEmitPower = 1;
+bubbleSystem.maxEmitPower = 2;
+
+// Gravité légère vers le haut
+bubbleSystem.gravity = new BABYLON.Vector3(0, 0.5, 0);
+
+// Blend mode ADD pour masquer les carrés noirs et ne garder que le cercle blanc
+bubbleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+
+// Démarrer le système
+bubbleSystem.start();
+
+// Variables pour le tracking du curseur
+let lastMouseTime = 0;
+
+// Fonction pour convertir les coordonnées 2D de la souris en position 3D dans l'aquarium
+canvas.addEventListener("mousemove", (event) => {
+    const pickResult = scene.pick(event.clientX, event.clientY);
+
+    if (pickResult.hit) {
+        const worldPos = pickResult.pickedPoint;
+
+        // Vérifier si on est dans les limites de l'aquarium
+        const inBounds =
+            Math.abs(worldPos.x) < CONFIG.aquarium.width / 2 &&
+            Math.abs(worldPos.y) < CONFIG.aquarium.height / 2 &&
+            Math.abs(worldPos.z) < CONFIG.aquarium.depth / 2;
+
+        if (inBounds) {
+            // Mettre à jour la position de l'émetteur
+            bubbleEmitter.position.copyFrom(worldPos);
+
+            // Activer l'émission de bulles
+            const now = Date.now();
+            if (now - lastMouseTime > 30) { // Throttle
+                bubbleSystem.emitRate = 100; // Activer
+                lastMouseTime = now;
+            }
+        } else {
+            // Désactiver hors de l'aquarium
+            bubbleSystem.emitRate = 0;
+        }
+    }
+});
+
+// Désactiver les bulles quand la souris sort du canvas
+canvas.addEventListener("mouseleave", () => {
+    bubbleSystem.emitRate = 0;
+});
+
+// ============================================================================
 // RENDER LOOP
 // ============================================================================
 
@@ -450,3 +625,104 @@ window.addEventListener("resize", () => engine.resize());
 canvas.addEventListener("wheel", (event) => {
     event.preventDefault();
 });
+
+// ============================================================================
+// BIOLUMINESCENCE MODE
+// ============================================================================
+
+// Liste des animaux pouvant être bioluminescents
+const BIOLUMINESCENT_ANIMALS = [
+    'jellyfish.glb',
+    'octopus.glb',
+    'animal_crossing_new_horizons_octopus.glb'
+];
+
+let isBioActive = false;
+const bioMaterials = []; // Stocke les matériaux originaux pour restauration
+
+const bioBtn = document.getElementById('bioBtn');
+if (bioBtn) {
+    bioBtn.addEventListener('click', () => {
+        isBioActive = !isBioActive;
+        bioBtn.classList.toggle('active', isBioActive);
+
+        if (isBioActive) {
+            activateBioluminescence();
+        } else {
+            deactivateBioluminescence();
+        }
+    });
+}
+
+function activateBioluminescence() {
+    // Parcourir tous les meshes de la scène
+    scene.meshes.forEach(mesh => {
+        // Vérifier si c'est un animal bioluminescent
+        const isBio = BIOLUMINESCENT_ANIMALS.some(bioAnimal =>
+            mesh.name.includes(bioAnimal.replace('.glb', ''))
+        );
+
+        if (isBio && mesh.material) {
+            // Sauvegarder le matériau original
+            bioMaterials.push({
+                mesh: mesh,
+                originalMaterial: mesh.material.clone(),
+                originalEmissive: mesh.material.emissiveColor ? mesh.material.emissiveColor.clone() : null
+            });
+
+            // Créer l'effet bioluminescent
+            if (mesh.name.includes('jellyfish')) {
+                // Méduses: bleu cyan lumineux
+                mesh.material.emissiveColor = new BABYLON.Color3(0.2, 0.8, 1);
+            } else if (mesh.name.includes('octopus')) {
+                // Pieuvres: violet/rose lumineux
+                mesh.material.emissiveColor = new BABYLON.Color3(0.8, 0.2, 1);
+            }
+
+            // Augmenter la luminosité
+            mesh.material.emissiveIntensity = 0.8;
+
+            // Créer une lumière ponctuelle pour chaque animal bioluminescent
+            const glowLight = new BABYLON.PointLight(
+                `bioLight_${mesh.name}`,
+                mesh.position.clone(),
+                scene
+            );
+            glowLight.intensity = 2;
+            glowLight.range = 8;
+            glowLight.diffuse = mesh.material.emissiveColor.clone();
+
+            // Attacher la lumière au mesh pour qu'elle suive
+            glowLight.parent = mesh;
+
+            // Stocker la lumière pour pouvoir la supprimer plus tard
+            mesh.metadata = mesh.metadata || {};
+            mesh.metadata.bioLight = glowLight;
+        }
+    });
+
+    console.log("✨ Mode bioluminescence activé");
+}
+
+function deactivateBioluminescence() {
+    // Restaurer les matériaux originaux
+    bioMaterials.forEach(({ mesh, originalMaterial, originalEmissive }) => {
+        if (mesh.material) {
+            mesh.material.emissiveColor = originalEmissive || new BABYLON.Color3(0, 0, 0);
+            mesh.material.emissiveIntensity = 0;
+        }
+
+        // Supprimer la lumière ponctuelle
+        if (mesh.metadata && mesh.metadata.bioLight) {
+            mesh.metadata.bioLight.dispose();
+            delete mesh.metadata.bioLight;
+        }
+    });
+
+    // Vider le tableau
+    bioMaterials.length = 0;
+
+    console.log("🌑 Mode bioluminescence désactivé");
+}
+
+// ============================================================================

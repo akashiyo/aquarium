@@ -31,6 +31,22 @@
 
     <!-- Section de l'aquarium -->
     <section id="aquarium" class="aquarium-section">
+        <!-- Contrôle jour/nuit -->
+        <div class="time-control">
+            <label for="timeSlider">
+                <span class="time-icon">☀️</span>
+                <input type="range" id="timeSlider" min="0" max="100" value="50" step="1">
+                <span class="time-icon">🌙</span>
+            </label>
+            <span id="timeLabel" class="time-label">Jour</span>
+        </div>
+
+        <!-- Bouton Bioluminescence -->
+        <button id="bioBtn" class="bio-button" title="Mode Bioluminescence">
+            <span class="bio-icon">✨</span>
+            <span class="bio-text">Bioluminescence</span>
+        </button>
+
         <div style="position:relative">
             <canvas id="renderCanvas"></canvas>
 
