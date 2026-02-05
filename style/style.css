@@ -40,10 +40,20 @@ body {
 }
 
 .hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
-    z-index: 1;
-    color: white;
+    z-index: 5;
+    max-width: 800px;
+    width: 100%;
 }
+.hero-section {
+    position: relative;
+    overflow: hidden;
+}
+
 
 .hero-subtitle {
     font-family: "Dongle", sans-serif;
@@ -313,4 +323,17 @@ p{
 
 strong{
     font-weight: 600;
+}
+
+.poisson {
+    position: absolute;
+    width: 80px;
+    pointer-events: none;
+}
+
+#ocean {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
 }
