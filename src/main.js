@@ -2,7 +2,7 @@ import { createHotspot } from "./point.js";
 import { animalInfo } from "./animalInfo.js";
 
 // ============================================================================
-// SEEDED RANDOM (for reproducible ground element placement)
+// RANDOM AVEC GRAINE (pour un placement reproductible des éléments au sol)
 // ============================================================================
 
 function seededRandom(seed) {
@@ -119,7 +119,7 @@ const CONFIG = {
 // ============================================================================
 
 /**
- * Get scale value from config (handles both number and array)
+ * Récupère la valeur d'échelle depuis la config (gère nombre et tableau)
  */
 function getScaleValue(scale) {
     return Array.isArray(scale)
@@ -128,7 +128,7 @@ function getScaleValue(scale) {
 }
 
 /**
- * Create grid position with random offset
+ * Crée une position en grille avec décalage aléatoire
  */
 function createGridPosition(baseX, baseY, baseZ, index, spacing) {
     return new BABYLON.Vector3(
@@ -139,14 +139,14 @@ function createGridPosition(baseX, baseY, baseZ, index, spacing) {
 }
 
 /**
- * Apply defaults to config object
+ * Applique les valeurs par défaut à l'objet de configuration
  */
 function applyDefaults(config, defaults) {
     return { ...defaults, ...config };
 }
 
 /**
- * Center mesh on X/Z axes and ground it (set bottom to Y=0)
+ * Centre le mesh sur les axes X/Z et le pose au sol (bas à Y=0)
  */
 function centerMeshXZAndGround(mesh) {
     mesh.computeWorldMatrix(true);
@@ -163,11 +163,11 @@ function centerMeshXZAndGround(mesh) {
 }
 
 // ============================================================================
-// MODEL LOADING
+// CHARGEMENT DES MODÈLES
 // ============================================================================
 
 /**
- * Generic function to load and clone models
+ * Fonction générique pour charger et cloner des modèles
  */
 function loadModel(modelConfig, basePath, scene, options = {}) {
     const defaults = options.isAnimal ? CONFIG.defaults.animal : CONFIG.defaults.groundElement;
@@ -191,7 +191,7 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
                 const clone = template.clone(`${config.file}_clone_${i}`);
                 clone.setEnabled(true);
 
-                // Apply scale
+                // Appliquer l'échelle
                 const scaleValue = getScaleValue(config.scale);
                 clone.scaling.scaleInPlace(scaleValue);
 
@@ -204,11 +204,11 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
                 const center = boundingInfo.min.add(boundingInfo.max).scale(0.5);
                 const pivotOffset = center.subtract(clone.position);
 
-                // Apply position avec compensation du décalage de pivot
+                // Appliquer la position avec compensation du décalage de pivot
                 const targetPosition = createGridPosition(baseX, baseY, baseZ, i, spacing);
                 clone.position = targetPosition.subtract(pivotOffset);
 
-                // Apply rotation (with optional initial rotations from config)
+                // Appliquer la rotation (avec rotations initiales optionnelles depuis la config)
                 // Appliquer aux meshes enfants aussi car certains modèles GLB ont leur géométrie dans les enfants
                 if (config.rotationX) {
                     clone.rotation.x = config.rotationX;
@@ -220,7 +220,7 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
                 }
                 clone.rotation.y = Math.random() * Math.PI * 2;
 
-                // Add metadata for animation (only for animals)
+                // Ajouter des métadonnées pour l'animation (seulement pour les animaux)
                 if (options.isAnimal) {
                     clone.metadata = {
                         speed: BABYLON.Scalar.RandomRange(0.005, 0.02),
@@ -228,7 +228,7 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
                         animalType: config.file // Stocker le type d'animal
                     };
 
-                    // Create hotspot for first clone only
+                    // Créer un hotspot seulement pour le premier clone
                     if (i === 0) {
                         const info = animalInfo[config.file];
                         if (info) {
@@ -271,7 +271,7 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
 }
 
 /**
- * Load a single model (no cloning)
+ * Charge un modèle unique (sans clonage)
  */
 function loadSingleModel(modelConfig, basePath, scene) {
     BABYLON.SceneLoader.ImportMesh(
@@ -291,7 +291,7 @@ function loadSingleModel(modelConfig, basePath, scene) {
 }
 
 /**
- * Load ground elements with seeded random placement and collision avoidance
+ * Charge les éléments au sol avec placement aléatoire avec graine et évitement de collision
  */
 function loadGroundElements(scene) {
     const config = CONFIG.groundElements;
@@ -376,7 +376,7 @@ function loadGroundElements(scene) {
 }
 
 // ============================================================================
-// SCENE CREATION
+// CRÉATION DE LA SCÈNE
 // ============================================================================
 
 const canvas = document.getElementById("renderCanvas");
@@ -389,7 +389,7 @@ const createScene = function() {
     const scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-    // Light principale (contrôlée par le slider)
+    // Lumière principale (contrôlée par le slider)
     light = new BABYLON.HemisphericLight(
         "light",
         new BABYLON.Vector3(0, 1, 0),
@@ -399,7 +399,7 @@ const createScene = function() {
     light.diffuse = new BABYLON.Color3(1, 1, 1); // Blanc jour
     light.groundColor = new BABYLON.Color3(0.5, 0.7, 1); // Bleu clair au sol
 
-    // Aquarium box
+    // Boîte de l'aquarium
     const aquarium = BABYLON.MeshBuilder.CreateBox(
         "aquarium",
         {
@@ -435,23 +435,23 @@ const camera = new BABYLON.ArcRotateCamera(
 camera.attachControl(canvas, true);
 
 // ============================================================================
-// LOAD SCENE ELEMENTS
+// CHARGEMENT DES ÉLÉMENTS DE LA SCÈNE
 // ============================================================================
 
-// Load all animals
+// Charger tous les animaux
 CONFIG.animals.forEach(animalConfig => {
     loadModel(animalConfig, "./assets/models/animals/", scene, { isAnimal: true });
 });
 
-// Load ground elements (algae, corals, anemones) with seeded random placement
+// Charger les éléments au sol (algues, coraux, anémones) avec placement aléatoire avec graine
 loadGroundElements(scene);
 
-// Load rocks
+// Charger les rochers
 CONFIG.rocks.forEach(rockConfig => {
     loadSingleModel(rockConfig, "./assets/models/ground/ground/", scene);
 });
 
-// Ground with sand texture
+// Sol avec texture de sable
 const ground = BABYLON.MeshBuilder.CreateBox(
     "ground",
     {
@@ -551,14 +551,14 @@ if (timeSlider && timeLabel) {
 }
 
 // ============================================================================
-// BUBBLE TRAIL EFFECT (Mouse Interaction)
+// EFFET DE TRAINE DE BULLES (Interaction souris)
 // ============================================================================
 
 // Créer un système de particules pour les bulles
 const bubbleSystem = new BABYLON.ParticleSystem("bubbles", 2000, scene);
 bubbleSystem.particleTexture = new BABYLON.Texture("https://playground.babylonjs.com/textures/flare.png", scene);
 
-// Emetteur initial (sera mis à jour)
+// Émetteur initial (sera mis à jour)
 const bubbleEmitter = BABYLON.MeshBuilder.CreateSphere("bubbleEmitter", { diameter: 0.1 }, scene);
 bubbleEmitter.isVisible = false;
 bubbleSystem.emitter = bubbleEmitter;
@@ -594,13 +594,13 @@ bubbleSystem.maxEmitPower = 2;
 // Gravité légère vers le haut
 bubbleSystem.gravity = new BABYLON.Vector3(0, 0.5, 0);
 
-// Blend mode ADD pour masquer les carrés noirs et ne garder que le cercle blanc
+// Mode de fusion ADD pour masquer les carrés noirs et ne garder que le cercle blanc
 bubbleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
 
 // Démarrer le système
 bubbleSystem.start();
 
-// Variables pour le tracking du curseur
+// Variables pour le suivi du curseur
 let lastMouseTime = 0;
 
 // Fonction pour convertir les coordonnées 2D de la souris en position 3D dans l'aquarium
@@ -622,7 +622,7 @@ canvas.addEventListener("mousemove", (event) => {
 
             // Activer l'émission de bulles
             const now = Date.now();
-            if (now - lastMouseTime > 30) { // Throttle
+            if (now - lastMouseTime > 30) { // Limitation de fréquence
                 bubbleSystem.emitRate = 100; // Activer
                 lastMouseTime = now;
             }
@@ -639,7 +639,7 @@ canvas.addEventListener("mouseleave", () => {
 });
 
 // ============================================================================
-// RENDER LOOP
+// BOUCLE DE RENDU
 // ============================================================================
 
 engine.runRenderLoop(() => scene.render());
@@ -649,7 +649,7 @@ canvas.addEventListener("wheel", (event) => {
 });
 
 // ============================================================================
-// BIOLUMINESCENCE MODE
+// MODE BIOLUMINESCENCE
 // ============================================================================
 
 // Liste des animaux pouvant être bioluminescents
@@ -693,14 +693,11 @@ function activateBioluminescence() {
     // Parcourir tous les meshes de la scène
     scene.meshes.forEach(mesh => {
         // Vérifier si c'est un animal bioluminescent
-        const isBio = BIOLUMINESCENT_ANIMALS.some(bioAnimal =>
-            mesh.name.includes(bioAnimal.replace('.glb', ''))
-        );
+        const animalType = getAnimalTypeFromMesh(mesh.name);
+        const isBio = animalType !== null;
 
         // Ne pas activer si ce type a déjà la bio individuelle
-        const hasIndividualBio = Array.from(individualBioTypes).some(type =>
-            mesh.name.includes(type.replace('.glb', ''))
-        );
+        const hasIndividualBio = animalType && individualBioTypes.has(animalType);
 
         if (isBio && mesh.material && !hasIndividualBio) {
             // Sauvegarder le matériau original
@@ -764,9 +761,8 @@ function deactivateBioluminescence() {
     // Restaurer les matériaux originaux
     bioMaterials.forEach(({ mesh, originalMaterial, originalEmissive }) => {
         // Ne pas désactiver si ce type a la bio individuelle
-        const hasIndividualBio = Array.from(individualBioTypes).some(type =>
-            mesh.name.includes(type.replace('.glb', ''))
-        );
+        const animalType = getAnimalTypeFromMesh(mesh.name);
+        const hasIndividualBio = animalType && individualBioTypes.has(animalType);
 
         if (!hasIndividualBio) {
             if (mesh.material) {
@@ -807,7 +803,7 @@ function toggleIndividualBioluminescence(animalType) {
         individualBioTypes.delete(animalType);
 
         scene.meshes.forEach(mesh => {
-            if (mesh.name.includes(baseFileName)) {
+            if (meshBelongsToAnimalType(mesh.name, animalType)) {
                 if (mesh.material) {
                     mesh.material.emissiveColor = new BABYLON.Color3(0, 0, 0);
                     mesh.material.emissiveIntensity = 0;
@@ -826,7 +822,7 @@ function toggleIndividualBioluminescence(animalType) {
         individualBioTypes.add(animalType);
 
         scene.meshes.forEach(mesh => {
-            if (mesh.name.includes(baseFileName) && mesh.material) {
+            if (meshBelongsToAnimalType(mesh.name, animalType) && mesh.material) {
                 // Créer l'effet bioluminescent avec des couleurs selon le type
                 if (mesh.name.includes('jellyfish')) {
                     mesh.material.emissiveColor = new BABYLON.Color3(0.2, 0.8, 1); // Bleu cyan
@@ -876,15 +872,32 @@ function toggleIndividualBioluminescence(animalType) {
 
 /**
  * Détermine le type d'animal à partir du nom du mesh
+ * Cherche d'abord les noms les plus longs pour éviter les faux positifs
  */
 function getAnimalTypeFromMesh(meshName) {
-    for (const bioAnimal of BIOLUMINESCENT_ANIMALS) {
+    // Trier par longueur décroissante pour matcher d'abord les noms les plus spécifiques
+    const sortedAnimals = [...BIOLUMINESCENT_ANIMALS].sort((a, b) => b.length - a.length);
+
+    for (const bioAnimal of sortedAnimals) {
         const baseName = bioAnimal.replace('.glb', '');
-        if (meshName.includes(baseName)) {
+        // Vérifier si le nom du mesh correspond exactement au pattern de clone
+        if (meshName.startsWith(bioAnimal + '_clone_') ||
+            meshName.includes('/' + bioAnimal + '_clone_')) {
             return bioAnimal;
         }
     }
     return null;
+}
+
+/**
+ * Vérifie si un mesh appartient à un type d'animal spécifique
+ * Utilise un matching précis pour éviter les faux positifs
+ */
+function meshBelongsToAnimalType(meshName, animalType) {
+    // Le nom d'un mesh clone suit le format: "fichier.glb_clone_N" ou "fichier.glb_clone_N.sous_mesh"
+    // On vérifie que le nom commence par le fichier exact
+    return meshName.startsWith(animalType + '_clone_') ||
+           meshName.includes('/' + animalType + '_clone_');
 }
 
 // ============================================================================
