@@ -113,7 +113,7 @@ export const animalInfo = {
         title:  "Theragra chalcogramma",
         text:  " <strong> Description : </strong>Le theragra chalcogramma est une espèce de poissons marins de la famille des Gadidae qui se rencontre dans le nord de l'océan Pacifique. " +
             "<br> <strong> Localisation : </strong>Dans le nord du Pacifique" +
-            "<br> <strong> Alimentation : </strong> <ul> <li>Animaux démersaux</li><li>Crabe</li>Lançons équilles<li> </li>Petits poissons</ul>",
+            "<br> <strong> Alimentation : </strong> <ul> <li>Animaux démersaux</li><li>Crabe</li><li>Lançons équilles </li> <li>Petits poissons</li></ul>",
         hasAnimation: true
     },
 
