@@ -6,7 +6,7 @@ export const animalInfo = {
         text: " <strong> Description : </strong>Le gadus macrocephalus est une espèce de poisson marin appartenant à la famille des Gadidae. Étroitement apparentée à la morue de l’Atlantique, elle constitue une ressource économique majeure dans les pêcheries du Pacifique Nord, particulièrement en Alaska, au Japon et en Russie." +
             "<br> <strong> Localisation : </strong>Dans les eaux froides et tempérées du Pacifique Nord" +
             "<br> <strong> Alimentation : </strong> <ul> <li>Petits poissons</li><li>Crevettes</li> <li>Céphalopodes</li></ul>",
-        hasAnimation: true
+        hasAnimation: false
     },
 
     "jellyfish.glb": {
@@ -69,7 +69,7 @@ export const animalInfo = {
         text:  " <strong> Description : </strong>La carpe koi est un poisson ornemental asiatique. Vivant dans les rizières, ce poisson est le fruit de croisements entre individus de l'espèce appelée Carpe commune, Cyprinus carpio." +
             "<br> <strong> Localisation : </strong>Dans les eaux tranquilles, chaudes et peu profondes principalemlent en Chine, au Japon, en Corée et au Vietnam." +
             "<br> <strong> Alimentation : </strong> <ul> <li>Crevettes</li><li>Petits crustacés</li> <li>Algues</li> <li>Autres végétaux</li></ul>",
-        hasAnimation: true
+        hasAnimation: false
     },
 
     "red_betta_fish.glb": {

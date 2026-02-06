@@ -1,6 +1,6 @@
 // ============================================================================
 // ANIMATION MODULE - Gère les animations des hotspots
-// Les fonctions d'animation de mesh spécifiques du fichier a été corrigé par l'IA pour débugger (sans trop de succès) les animations, notamment au niveaux cu calcul des coordonnées
+// Les fonctions d'animation de mesh spécifiques du fichier a été corrigé par l'IA pour débugger (sans trop de succès) les animations, notamment au niveaux du calcul des coordonnées et orientations des meshes.
 // ============================================================================
 
 // Stockage des informations sur le hotspot actuellement sélectionné
