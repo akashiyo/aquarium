@@ -132,6 +132,6 @@ export const animalInfo = {
         text:  " <strong> Description : </strong>Les discus appartiennent à la famille des cichlidés et se distinguent par leur corps rond et aplati. Leurs écailles peuvent être de différentes couleurs. Ils s’affichent souvent dans des coloris jaunes, bleus et rouges fluo. Leur long front surplombe une bouche aplatie, dont les lèvres semblent souvent quelque peu gonflées. Le dos et le ventre sont ornés de nageoires dont les couleurs contrastent avec le reste du corps." +
             "<br> <strong> Localisation : </strong>Dans les rivières et les affluents de l'Amazone, où ils évoluent dans des eaux douces et chaudes, généralement près de la végétation aquatique" +
             "<br> <strong> Alimentation : </strong> <ul><li>Algues</li><li>Plantes aquatiques mortes</li> <li>Petits invertébrés</li></ul>",
-        hasAnimation: false
+        hasAnimation: true
     },
 };
