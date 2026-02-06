@@ -333,5 +333,7 @@ DIFFICULTÉS
         textures procédurales, seeding, gestion de positionnement complexe lors d'animation
         et génération dynamique de coordonnées, 2D dans la 3D (GUI bablyon)
     - Le point sur lequel nous étions le plus perdu était l'animation
+    - Nous aurions aimé avoir le temps pour pouvoir mettre un système pour filtrer l'apparition des animaux par type
+        ou période du jour, mais les animations et petits bugs sur les interactions nous ont pris trop de temps.
 
 
