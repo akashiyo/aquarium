@@ -2,10 +2,10 @@
 export const animalInfo = {
     "fish.glb": {
         number: 1,
-        title: "----",
-        text: " <strong> Description : </strong>" +
-            "<br> <strong> Localisation : </strong>" +
-            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>",
+        title: "Gadus macrocephalus",
+        text: " <strong> Description : </strong>Le gadus macrocephalus est une espèce de poisson marin appartenant à la famille des Gadidae. Étroitement apparentée à la morue de l’Atlantique, elle constitue une ressource économique majeure dans les pêcheries du Pacifique Nord, particulièrement en Alaska, au Japon et en Russie." +
+            "<br> <strong> Localisation : </strong>Dans les eaux froides et tempérées du Pacifique Nord" +
+            "<br> <strong> Alimentation : </strong> <ul> <li>Petits poissons</li><li>Crevettes</li> <li>Céphalopodes</li></ul>",
         hasAnimation: true
     },
 
@@ -56,10 +56,10 @@ export const animalInfo = {
 
     "fishie.glb": {
         number: 7,
-        title: "----",
-        text:  " <strong> Description : </strong>" +
-            "<br> <strong> Localisation : </strong>" +
-            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>",
+        title: "Poisson lapin de java",
+        text:  " <strong> Description : </strong>Le poisson lapin a un corps ovale, comprimé latéralement. l se caractérise une couleur bronze avec des points crèmes sur la tête et le haut du dos jusqu’au pédoncule caudal et un motif de lignes courtes sur les flancs, le ventre est blanchâtre. Sa tête est teintée de jaune, avec des lèvres jaunes et des yeux à l’iris brun clair. On le rencontre souvent en couple ou en petit groupe, sur les récifs coralliens, zones de mangroves." +
+            "<br> <strong> Localisation : </strong> Dans le Golfe persique, golfe d’Oman, Océan indien (Sri Lanka, pakistan) mer d’Andaman, indo pacifique jusqu’à la Nouvelle Calédonie " +
+            "<br> <strong> Alimentation : </strong> <ul> <li>Algues benthiques</li><li>Algues flottantes</li></ul>",
         hasAnimation: true
     },
 
@@ -110,19 +110,19 @@ export const animalInfo = {
 
     "lowpoly_fish.glb": {
         number: 13,
-        title:  " ",
-        text:  " <strong> Description : </strong>" +
-            "<br> <strong> Localisation : </strong>" +
-            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>",
+        title:  "Theragra chalcogramma",
+        text:  " <strong> Description : </strong>Le theragra chalcogramma est une espèce de poissons marins de la famille des Gadidae qui se rencontre dans le nord de l'océan Pacifique. " +
+            "<br> <strong> Localisation : </strong>Dans le nord du Pacifique" +
+            "<br> <strong> Alimentation : </strong> <ul> <li>Animaux démersaux</li><li>Crabe</li>Lançons équilles<li> </li>Petits poissons</ul>",
         hasAnimation: true
     },
 
     "stylized_crab.glb": {
         number: 14,
-        title:  " ",
-        text:  " <strong> Description : </strong>" +
-            "<br> <strong> Localisation : </strong>" +
-            "<br> <strong> Alimentation : </strong> <ul> <li> </li><li> </li> <li> </li></ul>",
+        title:  "Gecarcinidae",
+        text:  " <strong> Description : </strong>Le gécarcinidé est le nom de famille de crabes terrestres des régions tropicales, qui retournent cependant à la mer pour se reproduire." +
+            "<br> <strong> Localisation : </strong>Les régions côtières chaudes des Amériques, notamment dans les îles des Caraïbes" +
+            "<br> <strong> Alimentation : </strong> <ul><li>Petits crustacés</li><li>Poissons</li> <li>Coquillages</li> <li>Cadavres d'animaux</li></ul>",
         hasAnimation: false
     },
 };

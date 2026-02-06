@@ -337,3 +337,8 @@ strong{
     z-index: 2;
     pointer-events: none;
 }
+
+.intro{
+    font-size: 23px;
+    color: white;
+}
