@@ -1,5 +1,6 @@
 // ============================================================================
 // ANIMATION MODULE - Gère les animations des hotspots
+// Les fonctions d'animation de mesh spécifiques du fichier a été corrigé par l'IA pour débugger (sans trop de succès) les animations, notamment au niveaux cu calcul des coordonnées
 // ============================================================================
 
 // Stockage des informations sur le hotspot actuellement sélectionné
@@ -212,6 +213,449 @@ function isExcludedFromCircleAnimation(meshName) {
         meshName.startsWith(excluded.replace('.glb', '')) ||
         meshName.includes(excluded)
     );
+}
+
+/**
+ * Animation automatique de la tortue : fait le tour du cube de l'aquarium
+ * en suivant les bords tout en gardant la même distance des parois
+ */
+export function animateTurtleLoop(scene, turtleMesh) {
+    // Position initiale: x: -15, y: 5, z: -10
+    // L'aquarium fait 50x50x50, centré à (0,0,0), donc les limites vont de -25 à +25
+
+    // DEBUG: Afficher les infos du mesh
+    console.log("🔍 Informations du mesh de la tortue:");
+    console.log("  - Nom:", turtleMesh.name);
+    console.log("  - Position:", turtleMesh.position);
+    console.log("  - Rotation:", turtleMesh.rotation);
+    console.log("  - Scaling:", turtleMesh.scaling);
+    console.log("  - Nombre d'enfants:", turtleMesh.getChildMeshes().length);
+
+    const childMeshes = turtleMesh.getChildMeshes();
+    console.log("  - Meshes enfants:");
+    childMeshes.forEach((child, index) => {
+        console.log(`    [${index}] ${child.name}`);
+        console.log(`        Position: x=${child.position.x.toFixed(2)}, y=${child.position.y.toFixed(2)}, z=${child.position.z.toFixed(2)}`);
+        console.log(`        Rotation: x=${child.rotation.x.toFixed(2)}, y=${child.rotation.y.toFixed(2)}, z=${child.rotation.z.toFixed(2)}`);
+        console.log(`        Scaling: x=${child.scaling.x.toFixed(2)}, y=${child.scaling.y.toFixed(2)}, z=${child.scaling.z.toFixed(2)}`);
+    });
+
+    const Y = 5; // Hauteur constante
+
+    // Définir les points du parcours (rectangle suivant les bords du cube)
+    // On commence par aller vers l'arrière (Z négatif) puis on fait le tour
+    const points = [
+        new BABYLON.Vector3(-15, Y, -10),  // Point de départ (arrière-gauche)
+        new BABYLON.Vector3(-15, Y, -15),  // Arrière-gauche (recule vers l'arrière)
+        new BABYLON.Vector3(15, Y, -15),   // Arrière-droite (avance en X)
+        new BABYLON.Vector3(15, Y, 15),    // Avant-droite (avance en Z)
+        new BABYLON.Vector3(-15, Y, 15),   // Avant-gauche (recule en X)
+        new BABYLON.Vector3(-15, Y, -10)   // Retour au point de départ
+    ];
+
+    const frameRate = 60;
+    const duration = 60; // 60 secondes pour faire le tour complet
+    const totalFrames = duration * frameRate;
+
+    // Animation de position (seulement pour le mesh parent)
+    const animPosition = new BABYLON.Animation(
+        "turtlePathAnimation",
+        "position",
+        frameRate,
+        BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+        BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+    );
+
+    const positionKeys = [];
+    const framesPerSegment = totalFrames / (points.length - 1);
+
+    for (let i = 0; i < points.length; i++) {
+        const frame = i * framesPerSegment;
+        positionKeys.push({
+            frame: frame,
+            value: points[i]
+        });
+    }
+
+    animPosition.setKeys(positionKeys);
+
+    // Appliquer un easing pour des mouvements plus fluides
+    const easingFunction = new BABYLON.SineEase();
+    easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+    animPosition.setEasingFunction(easingFunction);
+
+    // Attacher l'animation de position au mesh principal
+    turtleMesh.animations = turtleMesh.animations || [];
+    turtleMesh.animations.push(animPosition);
+
+    // Sauvegarder la rotation initiale pour la préserver
+    const initialRotationX = turtleMesh.rotation.x;
+    const initialRotationY = turtleMesh.rotation.y;
+    const initialRotationZ = turtleMesh.rotation.z;
+
+    console.log("🔄 Rotation initiale sauvegardée:", { x: initialRotationX, y: initialRotationY, z: initialRotationZ });
+
+    // Utiliser onBeforeRender pour orienter la tortue dynamiquement vers sa direction de mouvement
+    let lastPosition = turtleMesh.position.clone();
+
+    const updateRotation = () => {
+        // Calculer la direction du mouvement
+        const currentPosition = turtleMesh.position.clone();
+        const direction = currentPosition.subtract(lastPosition);
+
+        // Si le mouvement est significatif, orienter la tortue
+        if (direction.length() > 0.01) {
+            // Calculer l'angle de rotation basé sur la direction du mouvement
+            const movementAngle = Math.atan2(direction.x, direction.z);
+
+            // IMPORTANT: Ajouter l'angle de mouvement à la rotation initiale
+            // Le scaling Z négatif inverse le sens, donc on soustrait au lieu d'ajouter
+            turtleMesh.rotation.y = initialRotationY + movementAngle + Math.PI;
+            turtleMesh.rotation.x = initialRotationX;
+            turtleMesh.rotation.z = initialRotationZ;
+        }
+
+        lastPosition = currentPosition.clone();
+    };
+
+    // Observer pour mettre à jour la rotation à chaque frame
+    scene.onBeforeRenderObservable.add(updateRotation);
+
+    // Lancer l'animation de position en boucle infinie
+    scene.beginAnimation(turtleMesh, 0, totalFrames, true);
+
+    console.log("🐢 Animation de la tortue lancée (tour de l'aquarium en boucle)");
+}
+
+/**
+ * Animation automatique des carpes koi : fait le tour du cube de l'aquarium
+ * en suivant les bords tout en gardant la même distance des parois
+ */
+export function animateKoiFishLoop(scene, koiMeshes) {
+    // Position initiale: x: -5, y: 15, z: -8
+    // Il y a 5 carpes koi qui nagent ensemble
+
+    const Y = 15; // Hauteur constante (plus haut que la tortue)
+
+    // Définir les points du parcours (rectangle suivant les bords du cube)
+    const points = [
+        new BABYLON.Vector3(-5, Y, -8),    // Point de départ
+        new BABYLON.Vector3(-5, Y, -15),   // Vers l'arrière
+        new BABYLON.Vector3(15, Y, -15),   // Vers la droite
+        new BABYLON.Vector3(15, Y, 15),    // Vers l'avant
+        new BABYLON.Vector3(-15, Y, 15),   // Vers la gauche
+        new BABYLON.Vector3(-15, Y, -8),   // Continue à gauche
+        new BABYLON.Vector3(-5, Y, -8)     // Retour au point de départ
+    ];
+
+    const frameRate = 60;
+    const duration = 50; // 50 secondes pour faire le tour
+    const totalFrames = duration * frameRate;
+
+    koiMeshes.forEach((koiMesh, index) => {
+        // DEBUG: Afficher les infos du premier mesh seulement
+        if (index === 0) {
+            console.log("🔍 Informations du mesh carpe koi:");
+            console.log("  - Nom:", koiMesh.name);
+            console.log("  - Position:", koiMesh.position);
+            console.log("  - Rotation:", koiMesh.rotation);
+            console.log("  - Scaling:", koiMesh.scaling);
+        }
+
+        // Chaque poisson garde sa position initiale et suit le même parcours décalé
+        const startPos = koiMesh.position.clone();
+        const offsetX = startPos.x - points[0].x;
+        const offsetZ = startPos.z - points[0].z;
+
+        // Créer un parcours personnalisé pour ce poisson
+        const personalPoints = points.map(p =>
+            new BABYLON.Vector3(p.x + offsetX, p.y, p.z + offsetZ)
+        );
+
+        // Animation de position
+        const animPosition = new BABYLON.Animation(
+            `koiPathAnimation_${index}`,
+            "position",
+            frameRate,
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+
+        const positionKeys = [];
+        const framesPerSegment = totalFrames / (points.length - 1);
+
+        for (let i = 0; i < personalPoints.length; i++) {
+            const frame = i * framesPerSegment;
+            positionKeys.push({
+                frame: frame,
+                value: personalPoints[i]
+            });
+        }
+
+        animPosition.setKeys(positionKeys);
+
+        // Appliquer un easing pour des mouvements plus fluides
+        const easingFunction = new BABYLON.SineEase();
+        easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+        animPosition.setEasingFunction(easingFunction);
+
+        // Attacher l'animation de position
+        koiMesh.animations = koiMesh.animations || [];
+        koiMesh.animations.push(animPosition);
+
+        // Sauvegarder la rotation initiale
+        const initialRotationY = koiMesh.rotation.y;
+        const hasNegativeScaleZ = koiMesh.scaling.z < 0;
+
+        if (index === 0) {
+            console.log("🐟 DEBUG Carpe koi:");
+            console.log("  - Rotation Y initiale:", initialRotationY);
+            console.log("  - Scaling Z négatif?", hasNegativeScaleZ);
+        }
+
+        // Créer une animation de rotation avec des keyframes
+        const animRotation = new BABYLON.Animation(
+            `koiRotationAnimation_${index}`,
+            "rotation.y",
+            frameRate,
+            BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+
+        const rotationKeys = [];
+
+        for (let i = 0; i < personalPoints.length - 1; i++) {
+            const currentFrame = i * framesPerSegment;
+            const direction = personalPoints[i + 1].subtract(personalPoints[i]);
+            // Si scaling Z négatif, inverser la direction pour l'angle
+            const movementAngle = hasNegativeScaleZ
+                ? Math.atan2(-direction.x, -direction.z)
+                : Math.atan2(direction.x, direction.z);
+            const finalAngle = movementAngle;
+
+            rotationKeys.push({
+                frame: currentFrame,
+                value: finalAngle
+            });
+
+            if (index === 0 && i < 3) {
+                console.log(`  - Segment ${i}: frame=${currentFrame}, direction=(${direction.x.toFixed(2)}, ${direction.z.toFixed(2)}), angle=${movementAngle.toFixed(2)}, finalAngle=${finalAngle.toFixed(2)}`);
+            }
+        }
+
+        // Ajouter la rotation finale (retour au début)
+        const lastFrame = (personalPoints.length - 1) * framesPerSegment;
+        rotationKeys.push({
+            frame: lastFrame,
+            value: rotationKeys[0].value
+        });
+
+        if (index === 0) {
+            console.log("  - Nombre de keyframes rotation:", rotationKeys.length);
+            console.log("  - Keyframes triés (3 premiers):", rotationKeys.slice(0, 3));
+        }
+
+        animRotation.setKeys(rotationKeys);
+        animRotation.setEasingFunction(easingFunction);
+
+        koiMesh.animations.push(animRotation);
+
+        // Appliquer aussi la rotation aux meshes enfants (où se trouve la géométrie visible)
+        koiMesh.getChildMeshes().forEach(child => {
+            child.animations = child.animations || [];
+            child.animations.push(animRotation.clone());
+        });
+
+        if (index === 0) {
+            console.log("  - Nombre total d'animations sur le mesh:", koiMesh.animations.length);
+            console.log("  - Nombre d'enfants avec animation de rotation:", koiMesh.getChildMeshes().length);
+        }
+
+        // Lancer les animations en boucle infinie (position + rotation)
+        const animatable = scene.beginAnimation(koiMesh, 0, totalFrames, true);
+
+        // Lancer aussi sur les enfants
+        koiMesh.getChildMeshes().forEach(child => {
+            scene.beginAnimation(child, 0, totalFrames, true);
+        });
+
+        if (index === 0) {
+            console.log("  - Animation lancée, animatable:", animatable);
+            console.log("  - Animations actives:", animatable.getAnimations().map(a => a.animation.targetProperty));
+        }
+    });
+
+    console.log(`🐟 Animation de ${koiMeshes.length} carpes koi lancée (tour de l'aquarium en boucle)`);
+}
+
+/**
+ * Animation automatique des poissons (hotspot 1) : fait le tour du cube de l'aquarium
+ * en suivant les bords tout en gardant la même distance des parois
+ */
+export function animateFishLoop(scene, fishMeshes) {
+    // Position initiale: x: -8, y: 0, z: 8
+    // Il y a 3 poissons qui nagent ensemble
+
+    const Y = 0; // Hauteur constante (centre de l'aquarium)
+
+    // Définir les points du parcours (rectangle suivant les bords du cube)
+    const points = [
+        new BABYLON.Vector3(-8, Y, 8),     // Point de départ
+        new BABYLON.Vector3(-8, Y, -15),   // Vers l'arrière
+        new BABYLON.Vector3(15, Y, -15),   // Vers la droite
+        new BABYLON.Vector3(15, Y, 15),    // Vers l'avant
+        new BABYLON.Vector3(-15, Y, 15),   // Vers la gauche
+        new BABYLON.Vector3(-15, Y, 8),    // Continue à gauche
+        new BABYLON.Vector3(-8, Y, 8)      // Retour au point de départ
+    ];
+
+    const frameRate = 60;
+    const duration = 45; // 45 secondes pour faire le tour
+    const totalFrames = duration * frameRate;
+
+    fishMeshes.forEach((fishMesh, index) => {
+        // DEBUG: Afficher les infos du premier mesh seulement
+        if (index === 0) {
+            console.log("🔍 Informations du mesh poisson (hotspot 1):");
+            console.log("  - Nom:", fishMesh.name);
+            console.log("  - Position:", fishMesh.position);
+            console.log("  - Rotation:", fishMesh.rotation);
+            console.log("  - Scaling:", fishMesh.scaling);
+            console.log("  - Nombre d'enfants:", fishMesh.getChildMeshes().length);
+
+            const childMeshes = fishMesh.getChildMeshes();
+            if (childMeshes.length > 0) {
+                console.log("  - Premier enfant:");
+                console.log("    Position:", childMeshes[0].position);
+                console.log("    Rotation:", childMeshes[0].rotation);
+                console.log("    Scaling:", childMeshes[0].scaling);
+            }
+        }
+
+        // Chaque poisson garde sa position initiale et suit le même parcours décalé
+        const startPos = fishMesh.position.clone();
+        const offsetX = startPos.x - points[0].x;
+        const offsetZ = startPos.z - points[0].z;
+
+        // Créer un parcours personnalisé pour ce poisson
+        const personalPoints = points.map(p =>
+            new BABYLON.Vector3(p.x + offsetX, p.y, p.z + offsetZ)
+        );
+
+        // Animation de position
+        const animPosition = new BABYLON.Animation(
+            `fishPathAnimation_${index}`,
+            "position",
+            frameRate,
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+
+        const positionKeys = [];
+        const framesPerSegment = totalFrames / (points.length - 1);
+
+        for (let i = 0; i < personalPoints.length; i++) {
+            const frame = i * framesPerSegment;
+            positionKeys.push({
+                frame: frame,
+                value: personalPoints[i]
+            });
+        }
+
+        animPosition.setKeys(positionKeys);
+
+        // Appliquer un easing pour des mouvements plus fluides
+        const easingFunction = new BABYLON.SineEase();
+        easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+        animPosition.setEasingFunction(easingFunction);
+
+        // Attacher l'animation de position
+        fishMesh.animations = fishMesh.animations || [];
+        fishMesh.animations.push(animPosition);
+
+        // Sauvegarder la rotation initiale
+        const initialRotationY = fishMesh.rotation.y;
+        const hasNegativeScaleZ = fishMesh.scaling.z < 0;
+
+        if (index === 0) {
+            console.log("🐠 DEBUG Poisson:");
+            console.log("  - Rotation Y initiale:", initialRotationY);
+            console.log("  - Scaling Z négatif?", hasNegativeScaleZ);
+        }
+
+        // Créer une animation de rotation avec des keyframes
+        const animRotation = new BABYLON.Animation(
+            `fishRotationAnimation_${index}`,
+            "rotation.y",
+            frameRate,
+            BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+
+        const rotationKeys = [];
+
+        for (let i = 0; i < personalPoints.length - 1; i++) {
+            const currentFrame = i * framesPerSegment;
+            const direction = personalPoints[i + 1].subtract(personalPoints[i]);
+            // Si scaling Z négatif, inverser la direction pour l'angle
+            const movementAngle = hasNegativeScaleZ
+                ? Math.atan2(-direction.x, -direction.z)
+                : Math.atan2(direction.x, direction.z);
+            const finalAngle = movementAngle;
+
+            rotationKeys.push({
+                frame: currentFrame,
+                value: finalAngle
+            });
+
+            if (index === 0 && i < 3) {
+                console.log(`  - Segment ${i}: frame=${currentFrame}, direction=(${direction.x.toFixed(2)}, ${direction.z.toFixed(2)}), angle=${movementAngle.toFixed(2)}, finalAngle=${finalAngle.toFixed(2)}`);
+            }
+        }
+
+        // Ajouter la rotation finale (retour au début)
+        const lastFrame = (personalPoints.length - 1) * framesPerSegment;
+        rotationKeys.push({
+            frame: lastFrame,
+            value: rotationKeys[0].value
+        });
+
+        if (index === 0) {
+            console.log("  - Nombre de keyframes rotation:", rotationKeys.length);
+            console.log("  - Keyframes triés (3 premiers):", rotationKeys.slice(0, 3));
+        }
+
+        animRotation.setKeys(rotationKeys);
+        animRotation.setEasingFunction(easingFunction);
+
+        fishMesh.animations.push(animRotation);
+
+        // Appliquer aussi la rotation aux meshes enfants (où se trouve la géométrie visible)
+        fishMesh.getChildMeshes().forEach(child => {
+            child.animations = child.animations || [];
+            child.animations.push(animRotation.clone());
+        });
+
+        if (index === 0) {
+            console.log("  - Nombre total d'animations sur le mesh:", fishMesh.animations.length);
+            console.log("  - Nombre d'enfants avec animation de rotation:", fishMesh.getChildMeshes().length);
+        }
+
+        // Lancer les animations en boucle infinie (position + rotation)
+        const animatable = scene.beginAnimation(fishMesh, 0, totalFrames, true);
+
+        // Lancer aussi sur les enfants
+        fishMesh.getChildMeshes().forEach(child => {
+            scene.beginAnimation(child, 0, totalFrames, true);
+        });
+
+        if (index === 0) {
+            console.log("  - Animation lancée, animatable:", animatable);
+            console.log("  - Animations actives:", animatable.getAnimations().map(a => a.animation.targetProperty));
+        }
+    });
+
+    console.log(`🐠 Animation de ${fishMeshes.length} poissons lancée (tour de l'aquarium en boucle)`);
 }
 
 /**

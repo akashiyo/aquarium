@@ -1,8 +1,9 @@
 import { createHotspot } from "./point.js";
 import { animalInfo } from "./animalInfo.js";
+import { animateTurtleLoop, animateKoiFishLoop, animateFishLoop } from "./animation.js";
 
 // ============================================================================
-// RANDOM AVEC GRAINE (pour un placement reproductible des éléments au sol)
+// RANDOM (pour placement reproductible des éléments au sol)
 // ============================================================================
 
 function seededRandom(seed) {
@@ -166,6 +167,12 @@ function centerMeshXZAndGround(mesh) {
 // CHARGEMENT DES MODÈLES
 // ============================================================================
 
+// Tableau pour stocker les carpes koi à animer
+const koiFishClones = [];
+
+// Tableau pour stocker les poissons (hotspot 1) à animer
+const fishClones = [];
+
 /**
  * Fonction générique pour charger et cloner des modèles
  */
@@ -242,6 +249,38 @@ function loadModel(modelConfig, basePath, scene, options = {}) {
                                 info.text,
                                 config.file
                             );
+                        }
+
+                        // Lancer l'animation automatique de la tortue
+                        if (config.file === "model_50a_-_hawksbill_sea_turtle.glb") {
+                            // Attendre un peu que tout soit chargé avant de lancer l'animation
+                            setTimeout(() => {
+                                animateTurtleLoop(scene, clone);
+                            }, 1000);
+                        }
+                    }
+
+                    // Stocker les carpes koi pour les animer ensemble
+                    if (config.file === "koi_fish.glb") {
+                        koiFishClones.push(clone);
+
+                        // Lancer l'animation quand toutes les carpes sont chargées
+                        if (koiFishClones.length === config.count) {
+                            setTimeout(() => {
+                                animateKoiFishLoop(scene, koiFishClones);
+                            }, 1000);
+                        }
+                    }
+
+                    // Stocker les poissons (hotspot 1) pour les animer ensemble
+                    if (config.file === "fish.glb") {
+                        fishClones.push(clone);
+
+                        // Lancer l'animation quand tous les poissons sont chargés
+                        if (fishClones.length === config.count) {
+                            setTimeout(() => {
+                                animateFishLoop(scene, fishClones);
+                            }, 1000);
                         }
                     }
 
