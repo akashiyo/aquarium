@@ -325,13 +325,13 @@ CHOIX TECHNIQUES
 DIFFICULTÉS
 ================================================================================
 
-    - La tâche la plus dure a été de comprendre comment controler les mesh, qui n'avaient notamment
+    - La tâche la plus dure a été de comprendre comment contrôler les mesh, qui n'avaient notamment
     pas tous le même type de centre, d'animation natives et d'orientation.
     - Ensuite, nous n'avons pas réussi à faire les animations que nous souhaitions, même avec l'IA.
     - Les notions dont nous n'avons jamais entendu parler nous ont demandé l'utilisation de l'IA,
         pour avoir une idée de comment initialiser le code :
         textures procédurales, seeding, gestion de positionnement complexe lors d'animation
-        et génération dynamique de coordonnées, 2D dans la 3D (GUI bablyon)
+        et génération dynamique de coordonnées, 2D dans la 3D (GUI babylon)
     - Le point sur lequel nous étions le plus perdu était l'animation
     - Nous aurions aimé avoir le temps pour pouvoir mettre un système pour filtrer l'apparition des animaux par type
         ou période du jour, mais les animations et petits bugs sur les interactions nous ont pris trop de temps.
