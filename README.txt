@@ -305,7 +305,7 @@ CHOIX TECHNIQUES
 
 3. Animations Procédurales
    - Animations de mouvement en cercle
-   - Utilisation du système BABYLON.Animation sur la racine parent su mesh pour éviter de séparer les parties de l'animal
+   - Utilisation du système BABYLON.Animation sur la racine parent du mesh pour éviter de séparer les parties de l'animal
 
 4. Système de Lumières
    - Lumière hémisphérique principale (jour/nuit)
