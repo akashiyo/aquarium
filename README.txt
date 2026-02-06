@@ -218,231 +218,120 @@ Positionnement :
 11. POPULATION ANIMALE (15 Espèces)
 ====================================
 
-Poissons (9 types) :
-   1. Poisson générique (fish.glb) - 3 instances - Échelle: 0.01
-   2. Méduse (jellyfish.glb) - 4 instances - Échelles variables: 0.0010-0.0020
-   3. Poisson clown (fish-nem.glb) - 10 instances - Échelle: 1.7
-   4. Poisson stylisé (fishie.glb) - 6 instances - Échelle: 0.80
-   5. Carpe Koi (koi_fish.glb) - 5 instances - Échelle: 0.90
-   6. Poisson combattant (red_betta_fish.glb) - 7 instances - Échelle: 0.01
-   7. Poisson intermédiaire (fishoo.glb) - 2 instances - Échelle: 1
-   8. Poisson low-poly (lowpoly_fish.glb) - 4 instances - Échelle: 0.2
-   9. Requin blanc (pelagic_thresher_shark.glb) - 1 instance - Échelle: 0.05
+Poissons : 9 types (espèces génériques)
 
-Autres créatures (6 types) :
-  10. Tortue marine (hawksbill turtle) - 1 instance - Échelle: 15
-  11. Crabe (crab.glb) - 10 instances - Échelles: 2-3
-  12. Crabe stylisé (stylized_crab.glb) - 2 instances - Échelle: 7
-  13. Hippocampe (seahorse.glb) - 10 instances - Échelle: 0.35
-  14. Poulpe (Animal Crossing style) - 1 instance - Échelle: 1
-  15. Pieuvre rouge (octopus.glb) - 1 instance - Échelle: 0.5
+Autres créatures : 6 types (crustacés, requins etc.)
 
 Positionnement :
-   - Chaque espèce a une zone de placement définie (x, y, z)
+   - Chaque espèce a une zone de placement définie
    - Variations aléatoires pour éviter l'alignement parfait
    - Placées plus ou moins en hauteur en fonction de l'espèce
 
-Total : Plus de 60 créatures marines dans l'aquarium
-
-
 ================================================================================
-ARCHITECTURE TECHNIQUE
+ARCHITECTURE TECHNIQUE ET MENTIONS IA
 ================================================================================
-
-FICHIERS PRINCIPAUX
--------------------
 
 HTML
 ----
    - index.html : Page principale avec structure HTML et imports des scripts
 
-JavaScript (Modules ES6)
+JavaScript : Les calculs abstraits ont été ajustés par l'IA.
 ------------------------
-   - src/main.js (943 lignes) :
+   - src/main.js : l'IA a débuggé les conflits de bioluminescence globale et individuelle,
+         mais aussi les notions spécifiques pour le curseur à bulles (Flare). Le seeding utilisé
+         pour la génération complexe du sol a été pensé par l'IA.
+
      * Initialisation de la scène Babylon.js
-     * Chargement des modèles 3D (GLB)
+     * Chargement des modèles 3D (tous en GLB)
      * Configuration de l'aquarium, lumières et caméra
      * Système jour/nuit
      * Mode bioluminescence
-     * Effet de bulles
+     * Effet de bulles suivant le curseur
 
-   - src/point.js (174 lignes) :
+   - src/point.js : l'IA a aidé à utiliser le GUI et les positionnements des hotspot en fonction
+        du mouvement caméra (suivi de coordonnées)
+
      * Création des hotspots avec Babylon GUI
      * Projection 3D -> 2D
      * Animation de focus de la caméra
      * Gestion des clics et affichage InfoBox
 
-   - src/animation.js (718 lignes) :
-     * Animations en cercle pour les poissons
-     * Gestion des AnimationGroups des modèles GLB
-     * Système de recherche de clones
-     * Bioluminescence individuelle (double-clic)
+   - src/animation.js : la majorité des animations n'ont pas fonctionné comme prévu, les logs de debug
+        ont été écrits par l'IA, mais ça n'a pas beaucoup aidé. Au final nous avons laissé les suggestions de fonctions faites
+        par l'IA pour gérer les orientations des animaux lors du mouvement, même si elles n'ont pas vraiment marché.
 
-   - src/animalInfo.js (150 lignes) :
+     * Animations en cercle pour les poissons
+     * Gestion des AnimationGroups des modèles
+     * Système de recherche de clones
+     * Bioluminescence individuelle
+
+   - src/animalInfo.js :
      * Base de données d'informations sur les 14 espèces
      * Descriptions, localisations, régimes alimentaires
      * Configuration des animations disponibles
 
    - src/animation_homepage.js :
      * Animation des poissons de la page d'accueil
-     * Système de respawn et mouvement fluide
+     * Système de respawn
 
 CSS
 ---
    - style/style.css : Styles pour interface, page d'accueil, InfoBox, contrôles
 
 
-TECHNOLOGIES UTILISÉES
+TECHNOLOGIES
 ----------------------
-
-Core :
    - Babylon.js 7.x (CDN) - Moteur 3D
-   - Babylon.js Loaders - Chargement GLB/glTF
+   - Babylon.js Loaders - Chargement GLB
    - Babylon.js GUI - Interface 2D overlay
    - Babylon.js Procedural Textures - Textures génératives
 
 Formats :
-   - GLB - Modèles 3D (format glTF binaire)
-   - ES6 Modules - Organisation du code JavaScript
-   - HTML5 Canvas - Rendu WebGL
-
-Pas de build system : Projet exécutable directement dans le navigateur sans
-compilation
-
+   - GLB - Modèles 3D
 
 ================================================================================
-POINTS D'INTÉRÊT POUR L'ÉVALUATION
+CHOIX TECHNIQUES
 ================================================================================
 
 1. Système de Template-Based Mesh Cloning
    - Chargement d'un modèle GLB par type d'animal
    - Mesh template désactivé (.setEnabled(false))
-   - Clones multiples avec variations (échelle, position, rotation)
-   - Optimisation mémoire et performances
+   - Clones multiples avec variations (échelle, position, rotation) pour dupliquer rapidement le modèle
 
 2. Projection 3D vers 2D
    - Hotspots GUI liés aux positions 3D des animaux
    - Mise à jour à chaque frame (onBeforeRenderObservable)
-   - Calcul du centre des bounding boxes pour positionnement précis
+   - Calcul du centre des bounding boxes pour positionnement
 
 3. Animations Procédurales
-   - Génération d'animations de mouvement en cercle
-   - Utilisation du système BABYLON.Animation
-   - Gestion du frame rate (60 fps)
+   - Animations de mouvement en cercle
+   - Utilisation du système BABYLON.Animation sur la racine parent su mesh pour éviter de séparer les parties de l'animal
 
-4. Système de Lumières Dynamiques
+4. Système de Lumières
    - Lumière hémisphérique principale (jour/nuit)
    - Lumières ponctuelles pour bioluminescence
    - Couleurs et intensités adaptées par espèce
 
 5. Placement Procédural avec Seed
-   - Génération déterministe des positions d'algues et coraux
-   - Fonction seededRandom pour reproductibilité
+   - Génération des positions d'algues et coraux
+   - Fonction seededRandom
    - Détection de collision (distance minimale entre éléments)
 
-6. Optimisation des Recherches
-   - Utilisation de regex pour identifier les clones
-   - Filtrage efficace des AnimationGroups
-   - Système de Set pour tracking des bioluminescences individuelles
-
-7. Responsive Design
-   - Canvas pleine taille
-   - Adaptation mobile/desktop pour contrôles caméra
-   - Interface overlay positionnée de manière absolue
-
-
-================================================================================
-STRUCTURE DES DOSSIERS
-================================================================================
-
-603/
-├── assets/
-│   ├── images/              (Images page d'accueil - poissons PNG/SVG)
-│   └── models/
-│       ├── animals/         (15 modèles GLB d'animaux)
-│       └── ground/          (Éléments de décoration)
-│           └── ground/      (~25 modèles GLB de végétation et coraux)
-├── src/
-│   ├── main.js              (Script principal - scène 3D)
-│   ├── point.js             (Système de hotspots)
-│   ├── animation.js         (Animations des animaux)
-│   ├── animalInfo.js        (Base de données d'informations)
-│   └── animation_homepage.js (Animation page d'accueil)
-├── style/
-│   └── style.css            (Styles globaux)
-├── index.html               (Point d'entrée)
-├── README.txt               (Ce fichier)
-├── package.json             (Configuration npm - optionnel)
-└── docker-compose.yaml      (Configuration Docker - optionnel)
-
-
-================================================================================
-COMPATIBILITÉ
-================================================================================
-
-Navigateurs supportés :
-   - Chrome/Edge 90+ (recommandé)
-   - Firefox 88+
-   - Safari 14+
-
-Prérequis :
-   - Support WebGL 2.0
-   - JavaScript ES6 activé
-   - Connexion internet (pour CDN Babylon.js)
-
-
-================================================================================
-CRÉDITS ET RESSOURCES
-================================================================================
-
-Bibliothèque 3D : Babylon.js (https://www.babylonjs.com/)
-Modèles 3D : Sources variées (Sketchfab, bibliothèques libres)
-Textures : Babylon.js Playground assets
-
-
-================================================================================
-GUIDE DE TEST RAPIDE
-================================================================================
-
- 1. Lancer le projet
-    -> Serveur local HTTP
-
- 2. Observer la page d'accueil
-    -> Poissons animés en arrière-plan
-
- 3. Cliquer "Découvrir"
-    -> Accès à l'aquarium 3D
-
- 4. Naviguer avec la souris
-    -> Rotation, zoom, panoramique
-
- 5. Cliquer sur un hotspot (numéro blanc)
-    -> Affichage InfoBox + focus caméra
-
- 6. Cliquer "Animation" (si disponible)
-    -> Déclenchement animation espèce
-
- 7. Bouger le slider jour/nuit
-    -> Observer changement luminosité et couleurs
-
- 8. Cliquer bouton Bioluminescence
-    -> Effet lumineux sur tous les animaux
-
- 9. Double-cliquer sur un hotspot
-    -> Bioluminescence individuelle de l'espèce
-
-10. Déplacer la souris sur l'aquarium
-    -> Traînée de bulles interactive
-
-
-================================================================================
-QUELQUES CHOIX TECHNIQUES
-================================================================================
-
-- Reproductibilité : Le placement des éléments au sol utilise un seed fixe
-  (987654) pour garantir la même disposition à chaque chargement
-
-- Extensibilité : Architecture permettant l'ajout facile de nouvelles
+6. Extensibilité : Architecture permettant l'ajout facile de nouvelles
   espèces (ajouter GLB + entrée dans animalInfo.js + configuration dans
   CONFIG.animals)
+
+================================================================================
+DIFFICULTÉS
+================================================================================
+
+    - La tâche la plus dure a été de comprendre comment controler les mesh, qui n'avaient notamment
+    pas tous le même type de centre, d'animation natives et d'orientation.
+    - Ensuite, nous n'avons pas réussi à faire les animations que nous souhaitions, même avec l'IA.
+    - Les notions dont nous n'avons jamais entendu parler nous ont demandé l'utilisation de l'IA,
+        pour avoir une idée de comment initialiser le code :
+        textures procédurales, seeding, gestion de positionnement complexe lors d'animation
+        et génération dynamique de coordonnées, 2D dans la 3D (GUI bablyon)
+    - Le point sur lequel nous étions le plus perdu était l'animation
+
 
